@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28902.138
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moron", "Moron\Moron.csproj", "{58CCE3D8-02CA-4E53-8ACA-704BBA0676FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moron.Server", "Moron.Server\Moron.Server.csproj", "{AC734079-DBAC-4D9B-B026-09EAA637BB85}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{58CCE3D8-02CA-4E53-8ACA-704BBA0676FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58CCE3D8-02CA-4E53-8ACA-704BBA0676FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58CCE3D8-02CA-4E53-8ACA-704BBA0676FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58CCE3D8-02CA-4E53-8ACA-704BBA0676FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC734079-DBAC-4D9B-B026-09EAA637BB85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC734079-DBAC-4D9B-B026-09EAA637BB85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC734079-DBAC-4D9B-B026-09EAA637BB85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC734079-DBAC-4D9B-B026-09EAA637BB85}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2248C08E-990F-4CC8-A019-F18A9458FFD6}
+	EndGlobalSection
+EndGlobal
