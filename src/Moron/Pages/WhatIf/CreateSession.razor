@@ -1,0 +1,30 @@
+﻿@page "/whatif/session/create"
+@inject ISessionService sessionService
+@inject IUriHelper uriHelper
+@inject IPlayerService playerService
+@inject ISessionPlayerService sessionPlayerService
+
+<h1>Create a new session</h1>
+
+<h3>Enter name of session</h3>
+<input bind="@sessionName" type="text" />
+<h3>Enter your name</h3>
+<input bind="@playerName" type="text" />
+<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@Create">Create</a>
+
+@functions {
+    string sessionName = string.Empty;
+    string playerName = string.Empty;
+
+    async Task Create()
+    {
+        if (string.IsNullOrEmpty(sessionName) || string.IsNullOrEmpty(playerName))
+        {
+            return;
+        }
+        var session = await sessionService.CreateAsync(sessionName);
+        var player = await playerService.Create(playerName);
+        await sessionPlayerService.AddPlayerToSession(session.Id, player.Id);
+        uriHelper.NavigateTo($"whatif/session/{session.Id}/lobby");
+    }
+}

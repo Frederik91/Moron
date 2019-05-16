@@ -2,7 +2,7 @@
 @inject ISessionService sessionService
 @inject IUriHelper uriHelper
 
-<h1>Welcome to Moron!</h1>
+<h1>Welcome to Teg's games!</h1>
 
 <style>
     .card-square.mdl-card {
@@ -14,54 +14,23 @@
         color: #fff;
         background: url('/img/create.jpg') bottom right 15% no-repeat #46B6AC;
     }
-    .join-card-square > .mdl-card__title {
-        color: #fff;
-        background: url('/img/join.jpg') bottom right 15% no-repeat #46B6AC;
-    }
 </style>
 
 <div class="create-card-square mdl-card mdl-shadow--2dp" style="margin: 10px">
     <div class="mdl-card__title mdl-card--expand">
-        <h2 class="mdl-card__title-text">Create a new game</h2>
+        <h2 class="mdl-card__title-text">What if?</h2>
     </div>
     <div class="mdl-card__actions mdl-card--border">
-        <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@CreateSession">
-            Create
-        </a>
-    </div>
-</div>
-
-<div class="join-card-square mdl-card mdl-shadow--2dp" style="margin: 10px">
-    <div class="mdl-card__title mdl-card--expand">
-        <h2 class="mdl-card__title-text">Join existing game</h2>
-    </div>
-    <div class="mdl-card__actions mdl-card--border">
-        <input bind="@joinId" type="number" />
-        <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@JoinSession">
-            Join
+        <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@PlayWhatIf">
+            Play
         </a>
     </div>
 </div>
 
 @functions {
 
-    int joinId = 0;
-    string warning = string.Empty;
-
-    async Task JoinSession()
+    void PlayWhatIf()
     {
-        var session = await sessionService.GetSessionAsync(joinId);
-        if (session is null)
-        {
-            warning = "Session not found";
-            return;
-        }
-        uriHelper.NavigateTo($"/Session/{session.Id}");
-
-    }
-
-    void CreateSession()
-    {
-        uriHelper.NavigateTo($"/Session/Create");
+        uriHelper.NavigateTo($"/WhatIf/");
     }
 }

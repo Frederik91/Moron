@@ -1,0 +1,84 @@
+﻿@page "/whatif/"
+@inject ISessionService sessionService
+@inject IPlayerService playerService
+@inject ISessionPlayerService sessionPlayerService
+@inject IUriHelper uriHelper
+
+<h1>What if?</h1>
+
+<style>
+    .card-square.mdl-card {
+        width: 320px;
+        height: 260px;
+    }
+
+    .create-card-square > .mdl-card__title {
+        color: #fff;
+        background: url('/img/create.jpg') bottom right 15% no-repeat #46B6AC;
+    }
+
+    .join-card-square > .mdl-card__title {
+        color: #fff;
+        background: url('/img/join.jpg') bottom right 15% no-repeat #46B6AC;
+    }
+</style>
+
+<div class="create-card-square mdl-card mdl-shadow--2dp" style="margin: 10px">
+    <div class="mdl-card__title mdl-card--expand">
+        <h2 class="mdl-card__title-text">Create a new game</h2>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+        <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@CreateSession">
+            Create
+        </a>
+    </div>
+</div>
+
+<div class="join-card-square mdl-card mdl-shadow--2dp" style="margin: 10px">
+    <div class="mdl-card__title mdl-card--expand">
+        <h2 class="mdl-card__title-text">Join existing game</h2>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+        <input bind="@joinId" type="number" />
+        <input bind="@name" type="text" />
+        <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@JoinSession">
+            Join
+        </a>
+    </div>
+</div>
+
+@functions {
+
+    int joinId = 0;
+    string warning = string.Empty;
+    string name = string.Empty;
+
+    async Task JoinSession()
+    {
+        if (joinId < 1000 || joinId > 9999)
+        {
+            warning = "Invalid session id";
+            return;
+        }
+        if (string.IsNullOrEmpty(name))
+        {
+            warning = "Please enter a name";
+            return;
+        }
+        var session = await sessionService.GetSessionAsync(joinId);
+        var player = await playerService.Create(name);
+        await sessionPlayerService.AddPlayerToSession(session.Id, player.Id);
+        if (session is null)
+        {
+            warning = "Session not found";
+            return;
+        }
+        uriHelper.NavigateTo($"whatif/session/{session.Id}/lobby");
+
+    }
+
+    void CreateSession()
+    {
+        uriHelper.NavigateTo($"whatif/session/create");
+    }
+}

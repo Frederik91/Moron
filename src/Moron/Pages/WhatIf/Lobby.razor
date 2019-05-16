@@ -1,0 +1,56 @@
+﻿@page "/whatif/session/{SessionId:guid}/Lobby"
+@inject ISessionService sessionService
+@inject ISessionPlayerService sessionPlayerService
+@inject IPlayerService playerService
+@inject IUriHelper uriHelper
+@inject IConfiguration configuration
+
+@if (ActiveSession != null)
+{
+    <h1>Welcome to session @ActiveSession.Name</h1>
+    <h2>Invite others to join using this code: </h2>
+
+    <h1 class="text-center">@ActiveSession.JoinId</h1>
+
+    @foreach (var player in Players)
+    {
+        <span class="mdl-chip mdl-chip--contact">
+            <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">A</span>
+            <span class="mdl-chip__text">@player.Name</span>
+        </span>
+    }
+}
+
+@functions {
+    [Parameter]
+    public Guid SessionId { get; set; }
+
+    ISession ActiveSession { get; set; }
+
+    [Parameter]
+    public List<Player> Players { get; set; }
+    System.Timers.Timer Timer;
+
+    protected override async Task OnInitAsync()
+    {
+        Players = new List<Player>();
+        ActiveSession = await sessionService.GetAsync(SessionId);
+        await UpdatePlayers();
+        Timer = new System.Timers.Timer(500);
+        Timer.Elapsed += Elapsed;
+        Timer.Start();
+    }
+
+    async Task UpdatePlayers()
+    {
+        var playerIds = await sessionPlayerService.GetPlayersInSession(ActiveSession.Id);
+        var players = await playerService.Get(playerIds);
+        Players = players?.ToList();
+        await this.Invoke(this.StateHasChanged);
+    }
+
+    private async void Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+    {
+        await UpdatePlayers();
+    }
+}

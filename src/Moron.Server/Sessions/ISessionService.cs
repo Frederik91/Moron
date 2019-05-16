@@ -7,8 +7,8 @@ namespace Moron.Server.Sessions
 {
     public interface ISessionService
     {
-        Task<GameSession> GetAsync(Guid sessionId);
-        Task<GameSession> GetSessionAsync(int sessionId);
-        Task<GameSession> CreateAsync(string name);
+        Task<ISession> GetAsync(Guid sessionId);
+        Task<ISession> GetSessionAsync(int sessionId);
+        Task<ISession> CreateAsync(string name);
     }
 }
