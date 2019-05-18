@@ -73,7 +73,7 @@
             warning = "Session not found";
             return;
         }
-        uriHelper.NavigateTo($"whatif/session/{session.Id}/lobby");
+        uriHelper.NavigateTo($"whatif/session/{session.Id}/{player.Id}/lobby");
 
     }
 

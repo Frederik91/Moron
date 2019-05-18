@@ -1,4 +1,4 @@
-﻿@page "/whatif/session/{SessionId:guid}/Lobby"
+﻿@page "/whatif/session/{SessionId:guid}/{PlayerId:guid}/Lobby"
 @inject ISessionService sessionService
 @inject ISessionPlayerService sessionPlayerService
 @inject IPlayerService playerService
@@ -25,6 +25,9 @@
     [Parameter]
     public Guid SessionId { get; set; }
 
+        [Parameter]
+    public Guid PlayerId { get; set; }
+
     ISession ActiveSession { get; set; }
 
     [Parameter]
@@ -39,7 +42,19 @@
         Timer = new System.Timers.Timer(500);
         Timer.Elapsed += Elapsed;
         Timer.Start();
+
+        uriHelper.OnLocationChanged += LocationChanged;
     }
+
+    public async void LocationChanged(object sender, string path)
+    {
+        if (path?.ToLower().Contains("whatif") != true)
+        {
+            uriHelper.OnLocationChanged -= LocationChanged;
+            await sessionPlayerService.RemovePlayerFromSession(ActiveSession.Id, PlayerId);
+        }
+    }
+
 
     async Task UpdatePlayers()
     {
