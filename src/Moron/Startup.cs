@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Moron.Server.Games.WhatIf.Answers;
 using Moron.Server.Games.WhatIf.Questions;
 using Moron.Server.Helpers;
 using Moron.Server.Hubs;
@@ -38,6 +39,7 @@ namespace Moron
             services.AddSingleton<ISessionPlayerService, SessionPlayerService>();
             services.AddSingleton<IWhatIfOptionService, WhatIfOptionService>();
             services.AddSingleton<IQuestionService, QuestionService>();
+            services.AddSingleton<IAnswerService, AnswerService>();
             services.AddSingleton<SessionHub>();
         }
 
