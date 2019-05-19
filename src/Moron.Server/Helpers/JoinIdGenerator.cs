@@ -6,7 +6,7 @@ namespace Moron.Server.Helpers
 {
     public class JoinIdGenerator : IJoinIdGenerator
     {
-        private static readonly Random _rnd = new Random(10);
+        private static readonly Random _rnd = new Random(DateTime.UtcNow.Millisecond);
 
         public int Generate()
         {

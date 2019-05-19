@@ -9,9 +9,7 @@ namespace Moron.Server.Sessions
         Guid Id { get; }
         int JoinId { get; }
         string Name { get; }
-        void Start();
-        void AddPlayer(Guid userId);
-        void RemovePlayer(Guid userId);
-        void End();
+        Guid OwnerId { get; }
+        bool Started { get; set; }
     }
 }

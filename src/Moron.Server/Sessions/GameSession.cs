@@ -8,25 +8,7 @@ namespace Moron.Server.Sessions
         public Guid Id { get; set; }
         public int JoinId { get; set; }
         public string Name { get; set; }
-
-        public void AddPlayer(Guid userId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void End()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RemovePlayer(Guid userId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Start()
-        {
-            throw new NotImplementedException();
-        }
+        public Guid OwnerId { get; set; }
+        public bool Started { get; set; }
     }
 }

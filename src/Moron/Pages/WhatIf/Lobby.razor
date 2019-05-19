@@ -4,6 +4,7 @@
 @inject IPlayerService playerService
 @inject IUriHelper uriHelper
 @inject IConfiguration configuration
+@inject IWhatIfOptionService optionService
 
 @if (ActiveSession != null)
 {
@@ -11,22 +12,44 @@
     <h2>Invite others to join using this code: </h2>
 
     <h1 class="text-center">@ActiveSession.JoinId</h1>
+    <h3 class="text-center">Game master is @Owner.Name</h3>
+
+    if (IsOwner)
+    {
+        <h4>
+            Number of cards:
+            <input bind="@Options.NumberOfCards" type="number" />
+        </h4>
+    }
+    else
+    {
+        <h4>Number of cards: @Options.NumberOfCards</h4>
+    }
+
 
     @foreach (var player in Players)
     {
         <span class="mdl-chip mdl-chip--contact">
-            <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">A</span>
+            <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">@player.Name.First()</span>
             <span class="mdl-chip__text">@player.Name</span>
         </span>
     }
+
+    <button onclick="@Start" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Start</button>
 }
 
 @functions {
     [Parameter]
     public Guid SessionId { get; set; }
 
-        [Parameter]
+    [Parameter]
     public Guid PlayerId { get; set; }
+
+    public Player Owner { get; set; }
+
+    public bool IsOwner => Owner?.Id == PlayerId;
+
+    public WhatIfOption Options { get; set; }
 
     ISession ActiveSession { get; set; }
 
@@ -38,6 +61,8 @@
     {
         Players = new List<Player>();
         ActiveSession = await sessionService.GetAsync(SessionId);
+        Options = await optionService.Get(SessionId);
+        Owner = await playerService.Get(ActiveSession.OwnerId);
         await UpdatePlayers();
         Timer = new System.Timers.Timer(500);
         Timer.Elapsed += Elapsed;
@@ -55,17 +80,50 @@
         }
     }
 
+    async Task Start()
+    {
+        await sessionService.Start(ActiveSession.Id);
+        uriHelper.NavigateTo($"/whatif/session/{SessionId}/{PlayerId}/Questions");
+    }
 
     async Task UpdatePlayers()
     {
         var playerIds = await sessionPlayerService.GetPlayersInSession(ActiveSession.Id);
         var players = await playerService.Get(playerIds);
         Players = players?.ToList();
-        await this.Invoke(this.StateHasChanged);
     }
 
     private async void Elapsed(object sender, System.Timers.ElapsedEventArgs e)
     {
         await UpdatePlayers();
+        await RefreshOptions();
+        await RefreshSession();
+        await this.Invoke(this.StateHasChanged);
+    }
+
+    async Task RefreshOptions()
+    {
+        var savedOptions = await optionService.Get(ActiveSession.Id);
+        if (!IsOwner)
+        {
+            Options = savedOptions;
+        }
+        else if (Options.NumberOfCards != savedOptions.NumberOfCards)
+        {
+            await optionService.Update(SessionId, Options);
+        }
+    }
+
+    async Task RefreshSession()
+    {
+        if (IsOwner)
+        {
+            return;
+        }
+        var session = await sessionService.GetAsync(SessionId);
+        if (session.Started)
+        {
+            uriHelper.NavigateTo($"/whatif/session/{SessionId}/{PlayerId}/Questions");
+        }
     }
 }

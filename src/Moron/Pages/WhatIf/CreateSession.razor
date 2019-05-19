@@ -3,6 +3,7 @@
 @inject IUriHelper uriHelper
 @inject IPlayerService playerService
 @inject ISessionPlayerService sessionPlayerService
+@inject IWhatIfOptionService optionService
 
 <h1>Create a new session</h1>
 
@@ -22,8 +23,9 @@
         {
             return;
         }
-        var session = await sessionService.CreateAsync(sessionName);
         var player = await playerService.Create(playerName);
+        var session = await sessionService.CreateAsync(sessionName, player.Id);
+        await optionService.Create(session.Id);
         await sessionPlayerService.AddPlayerToSession(session.Id, player.Id);
         uriHelper.NavigateTo($"whatif/session/{session.Id}/{player.Id}/lobby");
     }

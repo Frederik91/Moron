@@ -9,6 +9,7 @@ namespace Moron.Server.Sessions
     {
         Task<ISession> GetAsync(Guid sessionId);
         Task<ISession> GetSessionAsync(int sessionId);
-        Task<ISession> CreateAsync(string name);
+        Task<ISession> CreateAsync(string name, Guid ownerId);
+        Task Start(Guid sessionId);
     }
 }

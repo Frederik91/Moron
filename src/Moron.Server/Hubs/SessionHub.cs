@@ -18,7 +18,6 @@ namespace Moron.Server.Hubs
         public async Task RemoveFromSession(string sessionId)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, sessionId);
-
             await Clients.Group(sessionId).SendAsync("Send", $"{Context.ConnectionId} has left the group {sessionId}.");
         }
     }

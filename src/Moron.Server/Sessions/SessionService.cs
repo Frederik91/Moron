@@ -31,16 +31,24 @@ namespace Moron.Server.Sessions
             return Task.FromResult(session);
         }
 
-        public Task<ISession> CreateAsync(string name)
+        public Task<ISession> CreateAsync(string name, Guid ownerId)
         {
             ISession session = new GameSession
             {
                 Id = Guid.NewGuid(),
                 JoinId = _joinIdGenerator.Generate(),
-                Name = name
+                Name = name,
+                OwnerId = ownerId
             };
             Sessions.Add(session);
             return Task.FromResult(session);
+        }
+
+        public Task Start(Guid sessionId)
+        {
+            var session = Sessions.First(x => x.Id == sessionId);
+            session.Started = true;
+            return Task.CompletedTask;
         }
     }
 }
