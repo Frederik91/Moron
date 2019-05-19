@@ -16,7 +16,8 @@ namespace Moron.Server.Games.WhatIf.Questions
             {
                 var question = new Question
                 {
-                    Id = Guid.NewGuid()
+                    Id = Guid.NewGuid(),
+                    Text = "What happens if "
                 };
                 _questions.Add(question.Id, question);
                 questions.Add(question);
