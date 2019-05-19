@@ -19,23 +19,30 @@
     }
 </style>
 
-@if (ActiveSession != null)
+@if (ActiveSession != null && !Submitted)
 {
     foreach (var question in Questions)
     {
-<div class="create-card-square mdl-card mdl-shadow--2dp" style="margin: 10px">
-    <div class="mdl-card__title mdl-card--expand">
-        <div class="row">
-            <div>
-                <h2 class="mdl-card__title-text">Question:</h2>
-            </div>
-            <div class="mdl-textfield mdl-js-textfield">
-                <textarea class="mdl-textfield__input" type="text" bind="@question.Text" rows="3" id="sample5"></textarea>
+        <div class="create-card-square mdl-card mdl-shadow--2dp" style="margin: 10px">
+            <div class="mdl-card__title mdl-card--expand">
+                <div class="row">
+                    <div>
+                        <h2 class="mdl-card__title-text">Question:</h2>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield">
+                        <textarea class="mdl-textfield__input" type="text" bind="@question.Text" rows="3"></textarea>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
     }
+    <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@SubmitQuestions">
+        Submit
+    </a>
+}
+@if (Submitted)
+{
+    <h1>Waiting for others players to finish writing questions</h1>
 }
 
 @functions {
@@ -47,13 +54,13 @@
 
     ISession ActiveSession { get; set; }
 
+    public bool Submitted { get; set; }
+
     public WhatIfOption Options { get; set; }
 
     public List<Question> Questions { get; set; }
 
-    public List<Player>
-    Players
-    { get; set; }
+    public List<Player> Players { get; set; }
     System.Timers.Timer Timer;
 
     protected override async Task OnInitAsync()
@@ -61,7 +68,7 @@
         Players = new List<Player>();
         ActiveSession = await sessionService.GetAsync(SessionId);
         Options = await optionService.Get(SessionId);
-        var questions = await questionService.CreateNQuestionsAsync(Options.NumberOfCards);
+        var questions = await questionService.CreateNQuestionsAsync(SessionId, Options.NumberOfCards);
         Questions = new List<Question>(questions);
 
         Timer = new System.Timers.Timer(500);
@@ -80,8 +87,23 @@
         }
     }
 
+    async Task SubmitQuestions()
+    {
+        if (Questions.Any(x => string.IsNullOrWhiteSpace(x.Text)))
+        {
+            return;
+        }
+        Questions.ForEach(x => x.Submitted = true);
+
+        await questionService.Update(Questions);
+        Submitted = true;
+    }
+
     private async void Elapsed(object sender, System.Timers.ElapsedEventArgs e)
     {
-        await this.Invoke(this.StateHasChanged);
+        if (Submitted && await questionService.AllQuestionsCreated(ActiveSession.Id))
+        {
+            uriHelper.NavigateTo($"whatif/session/{SessionId}/{PlayerId}/answers");
+        }
     }
 }

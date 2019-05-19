@@ -8,5 +8,6 @@ namespace Moron.Server.Games.WhatIf.Questions
     {
         public Guid Id { get; set; }
         public string Text { get; set; }
+        public bool Submitted { get; set; }
     }
 }
