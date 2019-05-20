@@ -8,7 +8,13 @@ namespace Moron.Server.Games.WhatIf.Answers
 {
     public class AnswerService : IAnswerService
     {
-        private static readonly Dictionary<Guid, Answer> _answers = new Dictionary<Guid, Answer>();
+        private static readonly Dictionary<Guid, List<Answer>> _answers = new Dictionary<Guid, List<Answer>>();
+
+        public Task<bool> AllAnswersSubmitted(Guid sessionId)
+        {
+            var result = _answers[sessionId].All(x => x.Submitted);
+            return Task.FromResult(result);
+        }
 
         public Task<IEnumerable<Answer>> CreateAnswers(Guid sessionId, IEnumerable<Guid> questionIds)
         {
@@ -21,24 +27,30 @@ namespace Moron.Server.Games.WhatIf.Answers
                     SessionId = sessionId,
                     QuestionId = questionId
                 };
-                _answers.Add(answer.Id, answer);
                 answers.Add(answer);
             }
+            if (_answers.ContainsKey(sessionId))
+                _answers[sessionId].AddRange(answers);
+            else
+                _answers.Add(sessionId, answers);
             return Task.FromResult(answers as IEnumerable<Answer>);
         }
 
         public Task<Answer> GetRandomAnswer(Guid sessionId, Guid questionId)
         {
-            var sessionAnswers = _answers.Values.Where(x => x.SessionId == sessionId);
-            var availableAnswers = sessionAnswers.Where(x => !x.Used);
-            return Task.FromResult(availableAnswers.First(x => x.QuestionId != questionId));
+            var sessionAnswers = _answers[sessionId];
+            var answer = sessionAnswers.FirstOrDefault(x => x.QuestionId != questionId && !x.Used);
+            answer.Used = true;
+            return Task.FromResult(answer);
         }
 
-        public Task Update(IEnumerable<Answer> answers)
+        public Task Submit(IEnumerable<Answer> answers)
         {
+            var allAnswers = _answers.SelectMany(x => x.Value).ToDictionary(x => x.Id);
             foreach (var answer in answers)
             {
-                _answers[answer.Id] = answer;
+                allAnswers[answer.Id].Text = answer.Text;
+                allAnswers[answer.Id].Submitted = true;
             }
             return Task.CompletedTask;
         }

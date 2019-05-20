@@ -1,5 +1,6 @@
 ﻿@page "/whatif/session/{SessionId:guid}/{PlayerId:guid}/Answers"
 @inject IAnswerService answerService
+@inject IWhatIfOptionService optionService
 @inject IQuestionService questionService
 @inject IPlayerService playerService
 @inject IUriHelper uriHelper
@@ -16,7 +17,7 @@
     }
 </style>
 
-@if (!Submitted)
+@if (!Submitted && Questions != null && Answers != null)
 {
     foreach (var question in Questions)
     {
@@ -24,16 +25,16 @@
             <div class="mdl-card__title mdl-card--expand">
                 <div class="row">
                     <div>
-                        <h2 class="mdl-card__title-text">Question:</h2>
+                        <h4 class="mdl-card__title-text">@question.Text</h4>
                     </div>
                     <div class="mdl-textfield mdl-js-textfield">
-                        <textarea class="mdl-textfield__input" type="text" bind="@question.Text" rows="3"></textarea>
+                        <textarea class="mdl-textfield__input" type="text" bind="@Answers.First(x => x.QuestionId == question.Id).Text" rows="3"></textarea>
                     </div>
                 </div>
             </div>
         </div>
     }
-    <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="">
+    <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@Submit">
         Submit
     </a>
 }
@@ -52,12 +53,15 @@
     public bool Submitted { get; set; }
 
     public List<Question> Questions { get; set; }
+    public List<Answer> Answers { get; set; }
 
     System.Timers.Timer Timer;
 
     protected override async Task OnInitAsync()
-    {        
-
+    {
+        var options = await optionService.Get(SessionId);
+        Questions = (await questionService.GetQuestionsAssignedToPlayer(SessionId, PlayerId)).ToList();
+        Answers = (await answerService.CreateAnswers(SessionId, Questions.Select(x => x.Id))).ToList();
         Timer = new System.Timers.Timer(500);
         Timer.Elapsed += Elapsed;
         Timer.Start();
@@ -65,5 +69,20 @@
 
     private async void Elapsed(object sender, System.Timers.ElapsedEventArgs e)
     {
+        if (await answerService.AllAnswersSubmitted(SessionId))
+        {
+            uriHelper.NavigateTo($"whatif/session/{SessionId}/{PlayerId}/Game");
+            Timer.Stop();
+        }
+    }
+
+    async Task Submit()
+    {
+        if (Answers.Any(x => string.IsNullOrWhiteSpace(x.Text)))
+        {
+            return;
+        }
+
+        await answerService.Submit(Answers);
     }
 }

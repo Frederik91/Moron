@@ -3,9 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28902.138
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moron", "Moron\Moron.csproj", "{58CCE3D8-02CA-4E53-8ACA-704BBA0676FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Moron", "Moron\Moron.csproj", "{58CCE3D8-02CA-4E53-8ACA-704BBA0676FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moron.Server", "Moron.Server\Moron.Server.csproj", "{AC734079-DBAC-4D9B-B026-09EAA637BB85}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Moron.Server", "Moron.Server\Moron.Server.csproj", "{AC734079-DBAC-4D9B-B026-09EAA637BB85}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{CF32F5DC-F50D-4D5C-87C8-38BAE170D462}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TegGames.Tests", "TegGames.Tests\TegGames.Tests.csproj", "{FCFD9EC9-1F28-4CA9-A960-AECC2656CB26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TegGames.Server.Tests", "TegGames.Server.Tests\TegGames.Server.Tests.csproj", "{D7545B4E-E340-409F-A8FB-A15055772DE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,9 +27,21 @@ Global
 		{AC734079-DBAC-4D9B-B026-09EAA637BB85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC734079-DBAC-4D9B-B026-09EAA637BB85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC734079-DBAC-4D9B-B026-09EAA637BB85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCFD9EC9-1F28-4CA9-A960-AECC2656CB26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCFD9EC9-1F28-4CA9-A960-AECC2656CB26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCFD9EC9-1F28-4CA9-A960-AECC2656CB26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCFD9EC9-1F28-4CA9-A960-AECC2656CB26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7545B4E-E340-409F-A8FB-A15055772DE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7545B4E-E340-409F-A8FB-A15055772DE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7545B4E-E340-409F-A8FB-A15055772DE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7545B4E-E340-409F-A8FB-A15055772DE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FCFD9EC9-1F28-4CA9-A960-AECC2656CB26} = {CF32F5DC-F50D-4D5C-87C8-38BAE170D462}
+		{D7545B4E-E340-409F-A8FB-A15055772DE2} = {CF32F5DC-F50D-4D5C-87C8-38BAE170D462}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2248C08E-990F-4CC8-A019-F18A9458FFD6}

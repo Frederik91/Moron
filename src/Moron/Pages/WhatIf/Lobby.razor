@@ -1,5 +1,6 @@
 ﻿@page "/whatif/session/{SessionId:guid}/{PlayerId:guid}/Lobby"
 @inject ISessionService sessionService
+@inject IQuestionService questionService
 @inject ISessionPlayerService sessionPlayerService
 @inject IPlayerService playerService
 @inject IUriHelper uriHelper
@@ -35,7 +36,10 @@
         </span>
     }
 
-    <button onclick="@Start" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Start</button>
+    if (IsOwner)
+    {
+        <button onclick="@Start" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Start</button>
+    }
 }
 
 @functions {
@@ -82,8 +86,15 @@
 
     async Task Start()
     {
+        if (Players.Count < 2)
+        {
+            return;
+        }
+
         await sessionService.Start(ActiveSession.Id);
+        await questionService.GenerateQuestionsForSession(ActiveSession.Id);
         uriHelper.NavigateTo($"/whatif/session/{SessionId}/{PlayerId}/Questions");
+        Timer.Stop();
     }
 
     async Task UpdatePlayers()
@@ -124,6 +135,7 @@
         if (session.Started)
         {
             uriHelper.NavigateTo($"/whatif/session/{SessionId}/{PlayerId}/Questions");
+            Timer.Stop();
         }
     }
 }

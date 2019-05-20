@@ -5,14 +5,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moron.Server.Games.WhatIf.Answers;
-using Moron.Server.Games.WhatIf.QuestionAnswers;
+using Moron.Server.Games.WhatIf.Options;
 using Moron.Server.Games.WhatIf.Questions;
 using Moron.Server.Helpers;
 using Moron.Server.Hubs;
 using Moron.Server.Players;
 using Moron.Server.SessionPlayers;
 using Moron.Server.Sessions;
-using Moron.Server.WhatIfOptions;
 using System.Collections.Generic;
 
 namespace Moron
@@ -40,7 +39,6 @@ namespace Moron
             services.AddSingleton<ISessionPlayerService, SessionPlayerService>();
             services.AddSingleton<IWhatIfOptionService, WhatIfOptionService>();
             services.AddSingleton<IQuestionService, QuestionService>();
-            services.AddSingleton<IQuestionAnswerService, QuestionAnswerService>();
             services.AddSingleton<IAnswerService, AnswerService>();
             services.AddSingleton<SessionHub>();
         }

@@ -1,0 +1,27 @@
+﻿@page "/whatif/session/{SessionId:guid}/{PlayerId:guid}/Finish"
+@inject ISessionService sessionService
+@inject IUriHelper uriHelper
+
+
+<h1>Session @Session.Name is over.</h1>
+
+<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@GoToMain">
+    Go to main page
+</a>
+
+@functions {
+    [Parameter]
+    public Guid SessionId { get; set; }
+
+    public ISession Session { get;set;}
+
+    protected override async Task OnInitAsync()
+    {
+        Session = await sessionService.GetAsync(SessionId);
+    }
+
+    void GoToMain()
+    {
+        uriHelper.NavigateTo("whatif");
+    }
+}

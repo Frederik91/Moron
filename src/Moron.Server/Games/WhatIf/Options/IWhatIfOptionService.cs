@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Moron.Server.WhatIfOptions
+namespace Moron.Server.Games.WhatIf.Options
 {
     public interface IWhatIfOptionService
     {

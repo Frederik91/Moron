@@ -68,7 +68,7 @@
         Players = new List<Player>();
         ActiveSession = await sessionService.GetAsync(SessionId);
         Options = await optionService.Get(SessionId);
-        var questions = await questionService.CreateNQuestionsAsync(SessionId, Options.NumberOfCards);
+        var questions = await questionService.GetQuestionsForPlayerToCreate(SessionId, PlayerId);
         Questions = new List<Question>(questions);
 
         Timer = new System.Timers.Timer(500);
@@ -84,6 +84,7 @@
         {
             uriHelper.OnLocationChanged -= LocationChanged;
             await sessionPlayerService.RemovePlayerFromSession(ActiveSession.Id, PlayerId);
+            Timer.Stop();
         }
     }
 
@@ -93,17 +94,17 @@
         {
             return;
         }
-        Questions.ForEach(x => x.Submitted = true);
 
-        await questionService.Update(Questions);
+        await questionService.Submit(Questions);
         Submitted = true;
     }
 
     private async void Elapsed(object sender, System.Timers.ElapsedEventArgs e)
     {
-        if (Submitted && await questionService.AllQuestionsCreated(ActiveSession.Id))
+        if (Submitted && await questionService.AllQuestionsSubmitted(ActiveSession.Id))
         {
             uriHelper.NavigateTo($"whatif/session/{SessionId}/{PlayerId}/answers");
+            Timer.Stop();
         }
     }
 }

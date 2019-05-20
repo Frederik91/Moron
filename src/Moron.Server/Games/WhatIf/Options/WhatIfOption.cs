@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Moron.Server.WhatIfOptions
+namespace Moron.Server.Games.WhatIf.Options
 {
     public class WhatIfOption
     {
         public int NumberOfCards { get; set; }
-        public Guid Id { get; internal set; }
+        public Guid Id { get; set; }
     }
 }
