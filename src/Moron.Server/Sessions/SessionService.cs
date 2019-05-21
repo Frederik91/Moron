@@ -10,24 +10,22 @@ namespace Moron.Server.Sessions
     public class SessionService : ISessionService
     {
         private readonly IJoinIdGenerator _joinIdGenerator;
-        private static readonly List<ISession> Sessions = new List<ISession>();
-        private readonly SessionHub _session;
+        private static readonly List<ISession> _sessions = new List<ISession>();
 
-        public SessionService(IJoinIdGenerator joinIdGenerator, SessionHub session)
+        public SessionService(IJoinIdGenerator joinIdGenerator)
         {
             _joinIdGenerator = joinIdGenerator;
-            _session = session;
         }
 
         public Task<ISession> GetAsync(Guid sessionId)
         {
-            var session = Sessions.FirstOrDefault(x => x.Id == sessionId);
+            var session = _sessions.FirstOrDefault(x => x.Id == sessionId);
             return Task.FromResult(session);
         }
 
         public Task<ISession> GetSessionAsync(int joinId)
         {
-            var session = Sessions.FirstOrDefault(x => x.JoinId == joinId);
+            var session = _sessions.FirstOrDefault(x => x.JoinId == joinId);
             return Task.FromResult(session);
         }
 
@@ -40,13 +38,13 @@ namespace Moron.Server.Sessions
                 Name = name,
                 OwnerId = ownerId
             };
-            Sessions.Add(session);
+            _sessions.Add(session);
             return Task.FromResult(session);
         }
 
         public Task Start(Guid sessionId)
         {
-            var session = Sessions.First(x => x.Id == sessionId);
+            var session = _sessions.First(x => x.Id == sessionId);
             session.Started = true;
             return Task.CompletedTask;
         }

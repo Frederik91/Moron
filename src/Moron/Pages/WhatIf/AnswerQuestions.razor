@@ -1,6 +1,7 @@
 ﻿@page "/whatif/session/{SessionId:guid}/{PlayerId:guid}/Answers"
 @inject IAnswerService answerService
 @inject IWhatIfOptionService optionService
+@inject IGameService gameService
 @inject IQuestionService questionService
 @inject IPlayerService playerService
 @inject IUriHelper uriHelper
@@ -83,6 +84,11 @@
             return;
         }
 
-        await answerService.Submit(Answers);
+        Submitted = true;
+        await answerService.Submit(Answers, PlayerId);
+        if (await answerService.AllAnswersSubmitted(SessionId))
+        {
+            await gameService.Start(SessionId);
+        }
     }
 }

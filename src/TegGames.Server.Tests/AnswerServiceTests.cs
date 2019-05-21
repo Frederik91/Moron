@@ -1,4 +1,6 @@
-﻿using Moron.Server.Games.WhatIf.Answers;
+﻿using Moq;
+using Moron.Server.Games.WhatIf.Answers;
+using Moron.Server.Games.WhatIf.Games;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,11 +20,8 @@ namespace TegGames.Server.Tests
 
             var cut = new AnswerService();
             var answers = await cut.CreateAnswers(sessionId, questionIds);
-            var answer1 = await cut.GetRandomAnswer(sessionId, questionIds[0]);
-            var answer2 = await cut.GetRandomAnswer(sessionId, questionIds[1]);
 
             Assert.Equal(2, answers.Count());
-            Assert.NotEqual(answer1.Id, answer2.Id);
         }
     }
 }

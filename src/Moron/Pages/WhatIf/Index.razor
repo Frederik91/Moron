@@ -39,8 +39,14 @@
         <h2 class="mdl-card__title-text">Join existing game</h2>
     </div>
     <div class="mdl-card__actions mdl-card--border">
-        <input bind="@joinId" type="number" />
-        <input bind="@name" type="text" />
+        <div class="mdl-textfield mdl-js-textfield">
+            <label>Join id</label>
+            <input class="mdl-textfield__input" bind="@joinId" type="text" />
+        </div>
+        <div class="mdl-textfield mdl-js-textfield">
+            <label>Name</label>
+            <input class="mdl-textfield__input" bind="@name" type="text" />
+        </div>
         <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@JoinSession">
             Join
         </a>
@@ -49,13 +55,14 @@
 
 @functions {
 
-    int joinId = 0;
+    string joinId = string.Empty;
     string warning = string.Empty;
     string name = string.Empty;
 
     async Task JoinSession()
     {
-        if (joinId < 1000 || joinId > 9999)
+        int.TryParse(joinId, out var id);
+        if (id < 1000 || id > 9999)
         {
             warning = "Invalid session id";
             return;
@@ -65,7 +72,7 @@
             warning = "Please enter a name";
             return;
         }
-        var session = await sessionService.GetSessionAsync(joinId);
+        var session = await sessionService.GetSessionAsync(id);
         var player = await playerService.Create(name);
         await sessionPlayerService.AddPlayerToSession(session.Id, player.Id);
         if (session is null)

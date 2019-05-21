@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Moron.Server.Games.WhatIf.Games;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,22 +37,27 @@ namespace Moron.Server.Games.WhatIf.Answers
             return Task.FromResult(answers as IEnumerable<Answer>);
         }
 
-        public Task<Answer> GetRandomAnswer(Guid sessionId, Guid questionId)
+        public Task<Answer> Get(Guid sessionId, Guid answerId)
         {
-            var sessionAnswers = _answers[sessionId];
-            var answer = sessionAnswers.FirstOrDefault(x => x.QuestionId != questionId && !x.Used);
-            answer.Used = true;
+            var answer = _answers[sessionId].FirstOrDefault(x => x.Id == answerId);
             return Task.FromResult(answer);
         }
 
-        public Task Submit(IEnumerable<Answer> answers)
+        public Task<IEnumerable<Answer>> GetAnswersInSession(Guid sessionId)
+        {
+            return Task.FromResult(_answers[sessionId] as IEnumerable<Answer>);
+        }
+
+        public Task Submit(IEnumerable<Answer> answers, Guid playerId)
         {
             var allAnswers = _answers.SelectMany(x => x.Value).ToDictionary(x => x.Id);
             foreach (var answer in answers)
             {
                 allAnswers[answer.Id].Text = answer.Text;
                 allAnswers[answer.Id].Submitted = true;
+                allAnswers[answer.Id].CreatedBy = playerId;
             }
+
             return Task.CompletedTask;
         }
     }

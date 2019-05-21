@@ -11,6 +11,6 @@ namespace Moron.Server.Games.WhatIf.Answers
         public Guid QuestionId { get; set; }
         public bool Submitted { get; set; }
         public string Text { get; set; }
-        public bool Used { get; set; }
+        public Guid CreatedBy { get; set; }
     }
 }

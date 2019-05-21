@@ -56,6 +56,12 @@ namespace Moron.Server.Games.WhatIf.Questions
             return questions;
         }
 
+        public Task<Question> Get(Guid sessionId, Guid questionId)
+        {
+            var question = _questions[sessionId].FirstOrDefault(x => x.Id == questionId);
+            return Task.FromResult(question);
+        }
+
         public Task<IEnumerable<Question>> GetQuestionsAssignedToPlayer(Guid sessionId, Guid playerId)
         {
             var questionsInSession = _questions[sessionId];
@@ -68,6 +74,11 @@ namespace Moron.Server.Games.WhatIf.Questions
             var questionsInSession = _questions[sessionId];
             var questions = questionsInSession.Where(x => x.CreatedBy == playerId);
             return Task.FromResult(questions);
+        }
+
+        public Task<IEnumerable<Question>> GetQuestionsInSession(Guid sessionId)
+        {
+            return Task.FromResult(_questions[sessionId] as IEnumerable<Question>);
         }
 
         public Task Submit(IEnumerable<Question> questions)
