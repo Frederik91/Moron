@@ -49,14 +49,6 @@ namespace Moron.Server.Games.WhatIf.Games
             return Task.FromResult(turn);
         }
 
-        public Task SubmitTurn(Guid sessionId, Guid turnId)
-        {
-            var game = _games[sessionId];
-            game.Turns.First(x => x.Id == turnId).IsFinished = true;
-
-            return Task.CompletedTask;
-        }
-
         public async Task Start(Guid sessionId)
         {
             var playerIds = await _sessionPlayerService.GetPlayersInSession(sessionId);

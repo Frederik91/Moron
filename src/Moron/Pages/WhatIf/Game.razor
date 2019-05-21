@@ -76,39 +76,37 @@
         }
 </style>
 
-@if (Question != null || Answer != null)
+
+@if (Question != null)
 {
-    if (Question != null)
-    {
-        <div class="question-card-square mdl-card mdl-shadow--2dp" style="margin: 10px">
-            <div class="mdl-card__title mdl-card--expand">
-                <h4>
-                    Question:<br>
-                    @Question.Text
-                </h4>
-            </div>
-            <div class="mdl-card__actions mdl-card--border">
-                <div class="mdl-layout-spacer"></div>
-            </div>
+    <div class="question-card-square mdl-card mdl-shadow--2dp" style="margin: 10px">
+        <div class="mdl-card__title mdl-card--expand">
+            <h4>
+                Question:<br>
+                @Question.Text
+            </h4>
         </div>
-    }
-    if (Answer != null)
-    {
-        <div class="answer-card-square mdl-card mdl-shadow--2dp" style="margin: 10px">
-            <div class="mdl-card__title mdl-card--expand">
-                <h4>
-                    Answer:<br>
-                    @Answer.Text
-                </h4>
-            </div>
-            <div class="mdl-card__actions mdl-card--border">
-                <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@Next">
-                    Next
-                </a>
-                <div class="mdl-layout-spacer"></div>
-            </div>
+        <div class="mdl-card__actions mdl-card--border">
+            <div class="mdl-layout-spacer"></div>
         </div>
-    }
+    </div>
+}
+else if (Answer != null)
+{
+    <div class="answer-card-square mdl-card mdl-shadow--2dp" style="margin: 10px">
+        <div class="mdl-card__title mdl-card--expand">
+            <h4>
+                Answer:<br>
+                @Answer.Text
+            </h4>
+        </div>
+        <div class="mdl-card__actions mdl-card--border">
+            <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="@Next">
+                Next
+            </a>
+            <div class="mdl-layout-spacer"></div>
+        </div>
+    </div>
 }
 else
 {

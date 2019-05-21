@@ -31,8 +31,8 @@ namespace Moron
         {
             services.AddRazorPages();
 
-            services.AddServerSideBlazor()
-                .AddSignalR().AddAzureSignalR(Configuration["Azure:SignalR:ConnectionString"]);
+            services.AddServerSideBlazor();
+                //.AddSignalR().AddAzureSignalR(Configuration["Azure:SignalR:ConnectionString"]);
 
             services.AddSingleton<ISessionService, SessionService>();
             services.AddSingleton<IJoinIdGenerator, JoinIdGenerator>();
@@ -64,10 +64,10 @@ namespace Moron
 
             app.UseRouting();
 
-            app.UseAzureSignalR(endpoints =>
-            {
-                endpoints.MapHub<SessionHub>("/session");
-            });
+            //app.UseAzureSignalR(endpoints =>
+            //{
+            //    endpoints.MapHub<SessionHub>("/session");
+            //});
 
             app.UseEndpoints(endpoints =>
             {
