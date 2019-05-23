@@ -42,24 +42,15 @@ namespace Moron.Server.Games.WhatIf.Questions
                     var playersAssignedQuestions = questions.GroupBy(x => x.AssignedToPlayer);
                     var playersAssignedQuestionThisRound = questionsThisRound.Select(x => x.AssignedToPlayer);
                     var validPlayersToAssignTo = playerIds.Where(x => x != playerId && playersAssignedQuestionThisRound?.Contains(x) != true);
-                    var questionsAssignedToPlayer = questionsThisRound.Where(x => x.AssignedToPlayer == playerId);
 
-                    var assignToPlayer = validPlayersToAssignTo.FirstOrDefault(x => !questionsAssignedToPlayer.Any() || questionsAssignedToPlayer.Any(y => y.CreatedBy != x));
+                    var assignToPlayer = validPlayersToAssignTo.FirstOrDefault();
                     if (assignToPlayer == Guid.Empty)
                     {
-                        var questionToSwap = questionsThisRound.FirstOrDefault(x => x.AssignedToPlayer != playerId);
-
-                        var questionsGroupsByAssigned = questionsThisRound.GroupBy(x => x.AssignedToPlayer);
-                        var usersAssignedMoreThanOneQuestion = questionsGroupsByAssigned.Where(x => x.Count() > 1);
-                        if (usersAssignedMoreThanOneQuestion.Any())
-                        {
-                            questionToSwap = usersAssignedMoreThanOneQuestion.First().First(x => x.CreatedBy != playerId);
-                        }
-
-                        if (questionToSwap is null)
+                        if (playerIds.Count == 2)
                             assignToPlayer = playerIds.FirstOrDefault(x => x != playerId);
                         else
                         {
+                            var questionToSwap = questionsThisRound.FirstOrDefault();
                             assignToPlayer = questionToSwap.AssignedToPlayer;
                             questionToSwap.AssignedToPlayer = playerId;
                         }
@@ -74,13 +65,6 @@ namespace Moron.Server.Games.WhatIf.Questions
                     };
                     questions.Add(question);
                     questionsThisRound.Add(question);
-
-                    var a = questionsThisRound.GroupBy(x => x.AssignedToPlayer);
-                    var b = a.Where(x => x.Count() > 1);
-                    if (b.Any())
-                    {
-                        throw new Exception();
-                    }
                 }
             }
             _questions.TryAdd(sessionId, questions);
