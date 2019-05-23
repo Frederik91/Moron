@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Moron.Server.Hubs;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace Moron.Server.SessionPlayers
 {
     public class SessionPlayerService : ISessionPlayerService
     {
-        private static readonly Dictionary<Guid, List<Guid>> _sessionUsers = new Dictionary<Guid, List<Guid>>();
+        private static readonly ConcurrentDictionary<Guid, List<Guid>> _sessionUsers = new ConcurrentDictionary<Guid, List<Guid>>();
         private readonly IHubContext<SessionHub> _sessionHub;
 
         public SessionPlayerService(IHubContext<SessionHub> sessionHub)
@@ -22,7 +23,7 @@ namespace Moron.Server.SessionPlayers
             if (_sessionUsers.TryGetValue(sessionId, out var playerIds))
                 playerIds.Add(playerId);
             else
-                _sessionUsers.Add(sessionId, new List<Guid> { playerId });
+                _sessionUsers.TryAdd(sessionId, new List<Guid> { playerId });
 
             return _sessionHub.Groups.AddToGroupAsync(playerId.ToString(), sessionId.ToString());
         }

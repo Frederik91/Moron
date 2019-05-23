@@ -1,5 +1,9 @@
 ﻿using Moron.Server.Games.WhatIf.Games;
+using Moron.Server.Games.WhatIf.Options;
+using Moron.Server.Games.WhatIf.Questions;
+using Moron.Server.SessionPlayers;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +13,7 @@ namespace Moron.Server.Games.WhatIf.Answers
 {
     public class AnswerService : IAnswerService
     {
-        private static readonly Dictionary<Guid, List<Answer>> _answers = new Dictionary<Guid, List<Answer>>();
+        private static readonly ConcurrentDictionary<Guid, BlockingCollection<Answer>> _answers = new ConcurrentDictionary<Guid, BlockingCollection<Answer>>();
 
         public Task<bool> AllAnswersSubmitted(Guid sessionId)
         {
@@ -17,23 +21,28 @@ namespace Moron.Server.Games.WhatIf.Answers
             return Task.FromResult(result);
         }
 
-        public Task<IEnumerable<Answer>> CreateAnswers(Guid sessionId, IEnumerable<Guid> questionIds)
+        public Task<IEnumerable<Answer>> GenerateSessionAnswers(Guid sessionId, IEnumerable<Question> questions)
         {
-            var answers = new List<Answer>();
-            foreach (var questionId in questionIds)
+            var answers = new BlockingCollection<Answer>();
+            foreach (var question in questions)
             {
                 var answer = new Answer
                 {
                     Id = Guid.NewGuid(),
                     SessionId = sessionId,
-                    QuestionId = questionId
+                    QuestionId = question.Id,
+                    CreatedBy = question.AssignedToPlayer
                 };
                 answers.Add(answer);
             }
-            if (_answers.ContainsKey(sessionId))
-                _answers[sessionId].AddRange(answers);
+
+            if (_answers.TryGetValue(sessionId, out var answersInSession))
+                foreach (var answer in answers)
+                {
+                    answersInSession.TryAdd(answer);
+                }
             else
-                _answers.Add(sessionId, answers);
+                _answers.TryAdd(sessionId, answers);
             return Task.FromResult(answers as IEnumerable<Answer>);
         }
 
@@ -48,14 +57,24 @@ namespace Moron.Server.Games.WhatIf.Answers
             return Task.FromResult(_answers[sessionId] as IEnumerable<Answer>);
         }
 
-        public Task Submit(IEnumerable<Answer> answers, Guid playerId)
+        public Task<IEnumerable<Answer>> GetPlayerAnswers(Guid sessionId, Guid playerId)
         {
-            var allAnswers = _answers.SelectMany(x => x.Value).ToDictionary(x => x.Id);
-            foreach (var answer in answers)
+            _answers.TryGetValue(sessionId, out var answersInSession);
+            var answers = answersInSession.Where(x => x.CreatedBy == playerId);
+            return Task.FromResult(answers);
+        }
+
+        public Task Submit(Guid sessionId, IEnumerable<Answer> answers)
+        {
+            _answers.TryGetValue(sessionId, out var sessionAnswers);
+            foreach (var sessionAnswer in sessionAnswers)
             {
-                allAnswers[answer.Id].Text = answer.Text;
-                allAnswers[answer.Id].Submitted = true;
-                allAnswers[answer.Id].CreatedBy = playerId;
+                var updatedAnswer = answers.FirstOrDefault(x => x.Id == sessionAnswer.Id);
+                if (updatedAnswer is null)
+                    continue;
+
+                sessionAnswer.Text = updatedAnswer.Text;
+                sessionAnswer.Submitted = true;
             }
 
             return Task.CompletedTask;

@@ -154,6 +154,7 @@ else
         {
             Answer = null;
             Question = null;
+            await this.Invoke(this.StateHasChanged);
             return;
         }
 
@@ -161,22 +162,22 @@ else
         {
             Answer = null;
             Question = await questionService.Get(SessionId, turn.QuestionId);
+            await this.Invoke(this.StateHasChanged);
             return;
         }
         if (turn.PlayerAnswerId == PlayerId && Answer?.Id != turn.AnswerId)
         {
             Question = null;
             Answer = await answerService.Get(SessionId, turn.AnswerId);
+            await this.Invoke(this.StateHasChanged);
             return;
         }
-        await this.Invoke(this.StateHasChanged);
-
     }
 
     async Task Next()
     {
+        await gameService.Next(SessionId, Answer.Id);
         Question = null;
         Answer = null;
-        await gameService.Next(SessionId, Answer.Id);
     }
 }

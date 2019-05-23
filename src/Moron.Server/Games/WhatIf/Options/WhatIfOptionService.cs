@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,7 +8,7 @@ namespace Moron.Server.Games.WhatIf.Options
 {
     public class WhatIfOptionService : IWhatIfOptionService
     {
-        private static readonly Dictionary<Guid, WhatIfOption> _options = new Dictionary<Guid, WhatIfOption>();
+        private static readonly ConcurrentDictionary<Guid, WhatIfOption> _options = new ConcurrentDictionary<Guid, WhatIfOption>();
 
         public Task<WhatIfOption> Get(Guid sessionId)
         {
@@ -22,7 +23,7 @@ namespace Moron.Server.Games.WhatIf.Options
                 Id = Guid.NewGuid(),
                 NumberOfCards = 3,
             };
-            _options.Add(sessionId, option);
+            _options.TryAdd(sessionId, option);
             return Task.FromResult(option);
         }
 

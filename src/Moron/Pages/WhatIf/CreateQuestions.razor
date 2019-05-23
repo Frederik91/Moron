@@ -19,7 +19,7 @@
     }
 </style>
 
-@if (ActiveSession != null && !Submitted)
+@if (Questions != null && !Submitted)
 {
     foreach (var question in Questions)
     {
@@ -68,7 +68,7 @@
         Players = new List<Player>();
         ActiveSession = await sessionService.GetAsync(SessionId);
         Options = await optionService.Get(SessionId);
-        var questions = await questionService.GetQuestionsForPlayerToCreate(SessionId, PlayerId);
+        var questions = await questionService.GetQuestionsCreatedByPlayer(SessionId, PlayerId);
         Questions = new List<Question>(questions);
 
         Timer = new System.Timers.Timer(500);

@@ -3,6 +3,7 @@ using Moron.Server.Games.WhatIf.Options;
 using Moron.Server.Games.WhatIf.Questions;
 using Moron.Server.SessionPlayers;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,7 @@ namespace Moron.Server.Games.WhatIf.Games
 {
     public class GameService : IGameService
     {
-        private static readonly Dictionary<Guid, Game> _games = new Dictionary<Guid, Game>();
+        private static readonly ConcurrentDictionary<Guid, Game> _games = new ConcurrentDictionary<Guid, Game>();
         private readonly ISessionPlayerService _sessionPlayerService;
         private readonly IQuestionService _questionService;
         private readonly IAnswerService _answerService;
@@ -40,9 +41,6 @@ namespace Moron.Server.Games.WhatIf.Games
         public Task<Turn> GetTurn(Guid sessionId)
         {
             var game = _games[sessionId];
-            if (game.IsFinished)
-                return null;
-
             var turn = game.Turns.FirstOrDefault(x => !x.IsFinished);
             if (turn is null)
                 game.IsFinished = true;
@@ -62,13 +60,14 @@ namespace Moron.Server.Games.WhatIf.Games
             {
                 for (int i = 0; i < options.NumberOfCards; i++)
                 {
-                    var question = questions.First(x => !assignedQuestions.Contains(x.Id) && x.CreatedBy != playerId);
+                    var question = questions.FirstOrDefault(x => !assignedQuestions.Contains(x.Id) && x.CreatedBy != playerId);
                     var turn = new Turn
                     {
                         Id = Guid.NewGuid(),
                         QuestionId = question.Id,
                         PlayerQuestionId = playerId
                     };
+                    assignedQuestions.Add(question.Id);
                     turns.Add(turn);
                 }
             }
@@ -77,13 +76,16 @@ namespace Moron.Server.Games.WhatIf.Games
             foreach (var turn in turns)
             {
                 var playerId = playerIds.First(x => x != turn.PlayerQuestionId && turns.Count(y => y.PlayerAnswerId == x) < options.NumberOfCards);
-                var answer = answers.First(x => !assignedAnswers.Contains(x.Id) && x.CreatedBy != playerId && x.QuestionId != x.Id);
+                var answer = answers.FirstOrDefault(x => !assignedAnswers.Contains(x.Id) && x.CreatedBy != playerId && x.QuestionId != turn.QuestionId);
+                if (answer is null)
+                    answer = answers.First(x => !assignedAnswers.Contains(x.Id) && x.QuestionId != turn.QuestionId);
                 turn.AnswerId = answer.Id;
                 turn.PlayerAnswerId = playerId;
+                assignedAnswers.Add(answer.Id);
             }
 
             var game = new Game { Turns = turns };
-            _games.Add(sessionId, game);
+            _games.TryAdd(sessionId, game);
         }
 
         public Task<bool> GameIsStarted(Guid sessionId)

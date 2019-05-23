@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,12 +9,12 @@ namespace Moron.Server.Players
 {
     public class PlayerService : IPlayerService
     {
-        private static readonly Dictionary<Guid, Player> _players = new Dictionary<Guid, Player>();
+        private static readonly ConcurrentDictionary<Guid, Player> _players = new ConcurrentDictionary<Guid, Player>();
 
         public Task<Player> Create(string name)
         {
             var player = new Player { Id = Guid.NewGuid(), Name = name };
-            _players.Add(player.Id, player);
+            _players.TryAdd(player.Id, player);
             return Task.FromResult(player);
         }
 

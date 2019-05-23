@@ -1,6 +1,8 @@
 ﻿@page "/whatif/session/{SessionId:guid}/{PlayerId:guid}/Lobby"
 @inject ISessionService sessionService
+@inject IGameService gameService
 @inject IQuestionService questionService
+@inject IAnswerService answerService
 @inject ISessionPlayerService sessionPlayerService
 @inject IPlayerService playerService
 @inject IUriHelper uriHelper
@@ -92,7 +94,9 @@
         }
 
         await sessionService.Start(ActiveSession.Id);
-        await questionService.GenerateQuestionsForSession(ActiveSession.Id);
+        var questions = await questionService.GenerateQuestionsForSession(ActiveSession.Id);
+        await answerService.GenerateSessionAnswers(ActiveSession.Id, questions);
+        await gameService.Start(ActiveSession.Id);
         uriHelper.NavigateTo($"/whatif/session/{SessionId}/{PlayerId}/Questions");
         Timer.Stop();
     }

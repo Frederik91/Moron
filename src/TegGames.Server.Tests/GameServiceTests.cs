@@ -27,7 +27,7 @@ namespace TegGames.Server.Tests
                 new Question
                 {
                     Id = Guid.NewGuid(),
-                    AssignedTo = players[1],
+                    AssignedToPlayer = players[1],
                     CreatedBy = players[0],
                     SessionId = sessionId,
                     Submitted = true,
@@ -36,7 +36,7 @@ namespace TegGames.Server.Tests
                 new Question
                 {
                     Id = Guid.NewGuid(),
-                    AssignedTo = players[0],
+                    AssignedToPlayer = players[0],
                     CreatedBy = players[1],
                     SessionId = sessionId,
                     Submitted = true,
@@ -84,6 +84,11 @@ namespace TegGames.Server.Tests
             Assert.True(turns.GroupBy(x => x.PlayerAnswerId).All(x => x.Count() == 1));
             Assert.True(turns.GroupBy(x => x.QuestionId).All(x => x.Count() == 1));
             Assert.True(turns.GroupBy(x => x.PlayerAnswerId).All(x => x.Count() == 1));
+
+            var turn1 = turns.First();
+            var turn1A = answers.First(x => x.Id == turn1.AnswerId);
+
+            Assert.NotEqual(turn1.QuestionId, turn1A.QuestionId);
         }
     }
 }

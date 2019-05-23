@@ -62,7 +62,7 @@
     {
         var options = await optionService.Get(SessionId);
         Questions = (await questionService.GetQuestionsAssignedToPlayer(SessionId, PlayerId)).ToList();
-        Answers = (await answerService.CreateAnswers(SessionId, Questions.Select(x => x.Id))).ToList();
+        Answers = (await answerService.GetPlayerAnswers(SessionId, PlayerId)).ToList();
         Timer = new System.Timers.Timer(500);
         Timer.Elapsed += Elapsed;
         Timer.Start();
@@ -85,10 +85,6 @@
         }
 
         Submitted = true;
-        await answerService.Submit(Answers, PlayerId);
-        if (await answerService.AllAnswersSubmitted(SessionId))
-        {
-            await gameService.Start(SessionId);
-        }
+        await answerService.Submit(SessionId, Answers);
     }
 }

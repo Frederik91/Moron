@@ -11,6 +11,6 @@ namespace Moron.Server.Games.WhatIf.Questions
         public bool Submitted { get; set; }
         public Guid SessionId { get; set; }
         public Guid CreatedBy { get; set; }
-        public Guid AssignedTo { get; set; }
+        public Guid AssignedToPlayer { get; set; }
     }
 }

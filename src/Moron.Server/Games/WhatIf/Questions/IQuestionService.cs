@@ -12,7 +12,7 @@ namespace Moron.Server.Games.WhatIf.Questions
         Task<bool> AllQuestionsSubmitted(Guid sessionId);
 
         Task<IEnumerable<Question>> GetQuestionsAssignedToPlayer(Guid sessionId, Guid playerId);
-        Task<IEnumerable<Question>> GetQuestionsForPlayerToCreate(Guid sessionId, Guid playerId);
+        Task<IEnumerable<Question>> GetQuestionsCreatedByPlayer(Guid sessionId, Guid playerId);
         Task<IEnumerable<Question>> GetQuestionsInSession(Guid sessionId);
         Task<Question> Get(Guid sessionId, Guid questionId);
     }

@@ -2,6 +2,7 @@
 using Moron.Server.Players;
 using Moron.Server.SessionPlayers;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace Moron.Server.Games.WhatIf.Questions
 {
     public class QuestionService : IQuestionService
     {
-        private static readonly Dictionary<Guid, List<Question>> _questions = new Dictionary<Guid, List<Question>>();
+        private static readonly ConcurrentDictionary<Guid, List<Question>> _questions = new ConcurrentDictionary<Guid, List<Question>>();
         private readonly ISessionPlayerService _sessionPlayerService;
         private readonly IWhatIfOptionService _whatIfOptionService;
 
@@ -31,28 +32,58 @@ namespace Moron.Server.Games.WhatIf.Questions
         public async Task<IEnumerable<Question>> GenerateQuestionsForSession(Guid sessionId)
         {
             var options = await _whatIfOptionService.Get(sessionId);
-            var playerIds = await _sessionPlayerService.GetPlayersInSession(sessionId);
+            var playerIds = (await _sessionPlayerService.GetPlayersInSession(sessionId)).ToList();
             var questions = new List<Question>();
-            foreach (var playerId in playerIds)
+            for (int i = 1; i <= options.NumberOfCards; i++)
             {
-                for (int i = 0; i < options.NumberOfCards; i++)
+                var questionsThisRound = new List<Question>();
+                foreach (var playerId in playerIds)
                 {
-                    var playersAssignedQuestions = questions.GroupBy(x => x.AssignedTo);
-                    var playersAssignedAllQuestions = playersAssignedQuestions.Where(x => x.Count() == options.NumberOfCards).Select(x => x.Key);
-                    var validPlayersToAssignTo = playerIds.Where(x => x != playerId && playersAssignedAllQuestions?.Contains(x) != true);
-                    var assignToPlayer = validPlayersToAssignTo?.FirstOrDefault();
+                    var playersAssignedQuestions = questions.GroupBy(x => x.AssignedToPlayer);
+                    var playersAssignedQuestionThisRound = questionsThisRound.Select(x => x.AssignedToPlayer);
+                    var validPlayersToAssignTo = playerIds.Where(x => x != playerId && playersAssignedQuestionThisRound?.Contains(x) != true);
+                    var questionsAssignedToPlayer = questionsThisRound.Where(x => x.AssignedToPlayer == playerId);
+
+                    var assignToPlayer = validPlayersToAssignTo.FirstOrDefault(x => !questionsAssignedToPlayer.Any() || questionsAssignedToPlayer.Any(y => y.CreatedBy != x));
+                    if (assignToPlayer == Guid.Empty)
+                    {
+                        var questionToSwap = questionsThisRound.FirstOrDefault(x => x.AssignedToPlayer != playerId);
+
+                        var questionsGroupsByAssigned = questionsThisRound.GroupBy(x => x.AssignedToPlayer);
+                        var usersAssignedMoreThanOneQuestion = questionsGroupsByAssigned.Where(x => x.Count() > 1);
+                        if (usersAssignedMoreThanOneQuestion.Any())
+                        {
+                            questionToSwap = usersAssignedMoreThanOneQuestion.First().First(x => x.CreatedBy != playerId);
+                        }
+
+                        if (questionToSwap is null)
+                            assignToPlayer = playerIds.FirstOrDefault(x => x != playerId);
+                        else
+                        {
+                            assignToPlayer = questionToSwap.AssignedToPlayer;
+                            questionToSwap.AssignedToPlayer = playerId;
+                        }
+                    }
 
                     var question = new Question
                     {
                         Id = Guid.NewGuid(),
                         CreatedBy = playerId,
                         SessionId = sessionId,
-                        AssignedTo = assignToPlayer.GetValueOrDefault(playerIds.First(x => x != playerId))
+                        AssignedToPlayer = assignToPlayer
                     };
                     questions.Add(question);
+                    questionsThisRound.Add(question);
+
+                    var a = questionsThisRound.GroupBy(x => x.AssignedToPlayer);
+                    var b = a.Where(x => x.Count() > 1);
+                    if (b.Any())
+                    {
+                        throw new Exception();
+                    }
                 }
             }
-            _questions.Add(sessionId, questions);
+            _questions.TryAdd(sessionId, questions);
             return questions;
         }
 
@@ -65,11 +96,11 @@ namespace Moron.Server.Games.WhatIf.Questions
         public Task<IEnumerable<Question>> GetQuestionsAssignedToPlayer(Guid sessionId, Guid playerId)
         {
             var questionsInSession = _questions[sessionId];
-            var questions = questionsInSession.Where(x => x.AssignedTo == playerId);
+            var questions = questionsInSession.Where(x => x.AssignedToPlayer == playerId);
             return Task.FromResult(questions);
         }
 
-        public Task<IEnumerable<Question>> GetQuestionsForPlayerToCreate(Guid sessionId, Guid playerId)
+        public Task<IEnumerable<Question>> GetQuestionsCreatedByPlayer(Guid sessionId, Guid playerId)
         {
             var questionsInSession = _questions[sessionId];
             var questions = questionsInSession.Where(x => x.CreatedBy == playerId);
