@@ -93,10 +93,10 @@
             return;
         }
 
-        await sessionService.Start(ActiveSession.Id);
         var questions = await questionService.GenerateQuestionsForSession(ActiveSession.Id);
         await answerService.GenerateSessionAnswers(ActiveSession.Id, questions);
         await gameService.Start(ActiveSession.Id);
+        await sessionService.Start(ActiveSession.Id);
         uriHelper.NavigateTo($"/whatif/session/{SessionId}/{PlayerId}/Questions");
         Timer.Stop();
     }

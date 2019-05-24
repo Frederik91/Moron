@@ -49,40 +49,53 @@ namespace Moron.Server.Games.WhatIf.Games
 
         public async Task Start(Guid sessionId)
         {
-            var playerIds = await _sessionPlayerService.GetPlayersInSession(sessionId);
-            var questions = await _questionService.GetQuestionsInSession(sessionId);
-            var answers = await _answerService.GetAnswersInSession(sessionId);
+            var playerIds = (await _sessionPlayerService.GetPlayersInSession(sessionId)).OrderBy(x => x).ToList();
+            var questions = (await _questionService.GetQuestionsInSession(sessionId)).OrderBy(x => x.CreatedBy).ToList();
+            var answers = (await _answerService.GetAnswersInSession(sessionId)).OrderBy(x => x.CreatedBy).ToList();
             var options = await _whatIfOptionService.Get(sessionId);
 
             var turns = new List<Turn>();
             var assignedQuestions = new List<Guid>();
-            foreach (var playerId in playerIds)
+            for (var n = 0; n < playerIds.Count; n++)
             {
-                for (int i = 0; i < options.NumberOfCards; i++)
+                var playerId = playerIds[n];
+                var nextPlayer = playerIds[(n % playerIds.Count + 1 % playerIds.Count) == playerIds.Count ? 0 : (n % playerIds.Count + 1 % playerIds.Count)];
+                var questionsByNextPlayer = questions.Where(x => x.CreatedBy == nextPlayer).ToList();
+                var answersByNextPlayer = answers.Where(x => x.CreatedBy == nextPlayer).ToList();
+
+                for (var i = 0; i < options.NumberOfCards; i++)
                 {
-                    var question = questions.FirstOrDefault(x => !assignedQuestions.Contains(x.Id) && x.CreatedBy != playerId);
+                    var question = questionsByNextPlayer[i];
+                    var answer = answersByNextPlayer[i];
                     var turn = new Turn
                     {
                         Id = Guid.NewGuid(),
                         QuestionId = question.Id,
-                        PlayerQuestionId = playerId
+                        PlayerQuestionId = playerId,
+                        AnswerId = answer.Id,
+                        PlayerAnswerId = playerIds.Count == 2 ? nextPlayer : playerIds.Where(x => turns.Count(y => y.PlayerAnswerId == x) < options.NumberOfCards).FirstOrDefault(x => x != playerId && x != nextPlayer)
                     };
                     assignedQuestions.Add(question.Id);
                     turns.Add(turn);
                 }
             }
 
-            var assignedAnswers = new List<Guid>();
-            foreach (var turn in turns)
+            var rng = new Random(DateTime.Now.Millisecond);
+
+            void Shuffle<T>(IList<T> list)
             {
-                var playerId = playerIds.First(x => x != turn.PlayerQuestionId && turns.Count(y => y.PlayerAnswerId == x) < options.NumberOfCards);
-                var answer = answers.FirstOrDefault(x => !assignedAnswers.Contains(x.Id) && x.CreatedBy != playerId && x.QuestionId != turn.QuestionId);
-                if (answer is null)
-                    answer = answers.First(x => !assignedAnswers.Contains(x.Id) && x.QuestionId != turn.QuestionId);
-                turn.AnswerId = answer.Id;
-                turn.PlayerAnswerId = playerId;
-                assignedAnswers.Add(answer.Id);
+                var n = list.Count;
+                while (n > 1)
+                {
+                    n--;
+                    var k = rng.Next(n + 1);
+                    var value = list[k];
+                    list[k] = list[n];
+                    list[n] = value;
+                }
             }
+
+            Shuffle(turns);
 
             var game = new Game { Turns = turns };
             _games.TryAdd(sessionId, game);

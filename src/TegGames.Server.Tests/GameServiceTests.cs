@@ -17,53 +17,80 @@ namespace TegGames.Server.Tests
     public class GameServiceTests
     {
 
-        [Fact]
-        public async Task StartGame()
+        [Theory]
+        [InlineData(2, 1)]
+        [InlineData(3, 1)]
+        [InlineData(4, 1)]
+        [InlineData(5, 1)]
+        [InlineData(6, 1)]
+        [InlineData(7, 1)]
+        [InlineData(8, 1)]
+        [InlineData(9, 1)]
+        [InlineData(10, 1)]
+        [InlineData(2, 2)]
+        [InlineData(3, 2)]
+        [InlineData(4, 2)]
+        [InlineData(5, 2)]
+        [InlineData(6, 2)]
+        [InlineData(7, 2)]
+        [InlineData(8, 2)]
+        [InlineData(9, 2)]
+        [InlineData(10, 2)]
+        [InlineData(2, 3)]
+        [InlineData(3, 3)]
+        [InlineData(4, 3)]
+        [InlineData(5, 3)]
+        [InlineData(6, 3)]
+        [InlineData(7, 3)]
+        [InlineData(8, 3)]
+        [InlineData(9, 3)]
+        [InlineData(10, 3)]
+        [InlineData(2, 4)]
+        [InlineData(3, 4)]
+        [InlineData(4, 4)]
+        [InlineData(5, 4)]
+        [InlineData(6, 4)]
+        [InlineData(7, 4)]
+        [InlineData(8, 4)]
+        [InlineData(9, 4)]
+        [InlineData(10, 4)]
+        public async Task StartGame(int playerCount, int numberOfCards)
         {
             var sessionId = Guid.NewGuid();
-            var players = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
-            var questions = new List<Question>
+            var players = new List<Guid>();
+            for (var i = 0; i < playerCount; i++)
             {
-                new Question
-                {
-                    Id = Guid.NewGuid(),
-                    AssignedToPlayer = players[1],
-                    CreatedBy = players[0],
-                    SessionId = sessionId,
-                    Submitted = true,
-                    Text = "Q1"
-                },
-                new Question
-                {
-                    Id = Guid.NewGuid(),
-                    AssignedToPlayer = players[0],
-                    CreatedBy = players[1],
-                    SessionId = sessionId,
-                    Submitted = true,
-                    Text = "Q2"
-                }
-            };
-            var answers = new List<Answer>
+                players.Add(Guid.NewGuid());
+            }
+            var questions = new List<Question>();
+            for (var i = 0; i < players.Count * numberOfCards; i++)
             {
-                new Answer
+                var question = new Question
                 {
                     Id = Guid.NewGuid(),
-                    CreatedBy = players[1],
-                    QuestionId = questions[0].Id,
+                    CreatedBy = players[i%players.Count],
                     SessionId = sessionId,
                     Submitted = true,
-                    Text = "A1"
-                },
-                new Answer
+                    Text = $"Q{i}"
+                };
+                questions.Add(question);
+            }
+
+            var answers = new List<Answer>();
+            for (var i = 0; i < players.Count * numberOfCards; i++)
+            {
+                var createdBy = players[(i % players.Count + 1 % players.Count) == players.Count ? 0 : (i % players.Count + 1 % players.Count)]; 
+                var answer = new Answer
                 {
                     Id = Guid.NewGuid(),
-                    CreatedBy = players[0],
-                    QuestionId = questions[1].Id,
+                    CreatedBy = createdBy,
+                    QuestionId = questions[i%players.Count].Id,
                     SessionId = sessionId,
                     Submitted = true,
-                    Text = "A1"
-                }
-            };
+                    Text = $"A{i}"
+                };
+                answers.Add(answer);
+            }
 
             var sessionPlayerServiceMock = new Mock<ISessionPlayerService>();
             sessionPlayerServiceMock.Setup(x => x.GetPlayersInSession(sessionId)).ReturnsAsync(players);
@@ -72,18 +99,18 @@ namespace TegGames.Server.Tests
             var answerServiceMock = new Mock<IAnswerService>();
             answerServiceMock.Setup(x => x.GetAnswersInSession(sessionId)).ReturnsAsync(answers);
             var optionsMock = new Mock<IWhatIfOptionService>();
-            optionsMock.Setup(x => x.Get(sessionId)).ReturnsAsync(new WhatIfOption { Id = Guid.NewGuid(), NumberOfCards = 1 });
+            optionsMock.Setup(x => x.Get(sessionId)).ReturnsAsync(new WhatIfOption { Id = Guid.NewGuid(), NumberOfCards = numberOfCards });
             var cut = new GameService(sessionPlayerServiceMock.Object, questionServiceMock.Object, answerServiceMock.Object, optionsMock.Object);
 
             await cut.Start(sessionId);
 
-            var turns = await cut.GetTurns(sessionId);
+            var turns = (await cut.GetTurns(sessionId)).ToList();
 
             Assert.Equal(questions.Count, turns.Count());
             Assert.True(turns.GroupBy(x => x.AnswerId).All(x => x.Count() == 1));
-            Assert.True(turns.GroupBy(x => x.PlayerAnswerId).All(x => x.Count() == 1));
+            Assert.True(turns.GroupBy(x => x.PlayerAnswerId).All(x => x.Count() == numberOfCards));
             Assert.True(turns.GroupBy(x => x.QuestionId).All(x => x.Count() == 1));
-            Assert.True(turns.GroupBy(x => x.PlayerAnswerId).All(x => x.Count() == 1));
+            Assert.True(turns.GroupBy(x => x.PlayerAnswerId).All(x => x.Count() == numberOfCards));
 
             var turn1 = turns.First();
             var turn1A = answers.First(x => x.Id == turn1.AnswerId);
