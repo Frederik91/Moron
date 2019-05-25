@@ -1,4 +1,5 @@
 ﻿using Moron.Server.Games.WhatIf.Questions;
+using Moron.Server.Players;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,5 +15,6 @@ namespace Moron.Server.Games.WhatIf.Answers
         Task<bool> AllAnswersSubmitted(Guid sessionId);
         Task<IEnumerable<Answer>> GetAnswersInSession(Guid sessionId);
         Task<Answer> Get(Guid sessionId, Guid answerId);
+        Task<IEnumerable<Player>> GetPlayersRemainingAnswers(Guid sessionId);
     }
 }

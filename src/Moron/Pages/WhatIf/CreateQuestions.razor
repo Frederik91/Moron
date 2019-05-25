@@ -43,6 +43,13 @@
 @if (Submitted)
 {
     <h1>Waiting for others players to finish writing questions</h1>
+    foreach (var player in RemainingPlayers)
+    {
+        <span class="mdl-chip mdl-chip--contact">
+            <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">@player.Name.First()</span>
+            <span class="mdl-chip__text">@player.Name</span>
+        </span>
+    }
 }
 
 @functions {
@@ -60,16 +67,17 @@
 
     public List<Question> Questions { get; set; }
 
-    public List<Player> Players { get; set; }
+    public List<Player> RemainingPlayers { get; set; }
     System.Timers.Timer Timer;
 
     protected override async Task OnInitAsync()
     {
-        Players = new List<Player>();
+        RemainingPlayers = new List<Player>();
         ActiveSession = await sessionService.GetAsync(SessionId);
         Options = await optionService.Get(SessionId);
         var questions = await questionService.GetQuestionsCreatedByPlayer(SessionId, PlayerId);
         Questions = new List<Question>(questions);
+        Submitted = Questions.All(x => x.Submitted);
 
         Timer = new System.Timers.Timer(500);
         Timer.Elapsed += Elapsed;
@@ -101,10 +109,24 @@
 
     private async void Elapsed(object sender, System.Timers.ElapsedEventArgs e)
     {
-        if (Submitted && await questionService.AllQuestionsSubmitted(ActiveSession.Id))
+        Timer.Stop();
+        try
         {
-            uriHelper.NavigateTo($"whatif/session/{SessionId}/{PlayerId}/answers");
-            Timer.Stop();
+            if (Submitted && await questionService.AllQuestionsSubmitted(ActiveSession.Id))
+            {
+                uriHelper.NavigateTo($"whatif/session/{SessionId}/{PlayerId}/answers");
+                return;
+            }
+            else if (Submitted)
+            {
+                RemainingPlayers = (await questionService.GetPlayersRemainingQuestions(SessionId)).ToList();
+                await this.Invoke(StateHasChanged);
+            }
         }
+        catch (Exception)
+        {
+            // Ignored
+        }
+        Timer.Start();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Moron.Server.Games.WhatIf.Games;
 using Moron.Server.Games.WhatIf.Options;
 using Moron.Server.Games.WhatIf.Questions;
+using Moron.Server.Players;
 using Moron.Server.SessionPlayers;
 using System;
 using System.Collections.Concurrent;
@@ -14,6 +15,12 @@ namespace Moron.Server.Games.WhatIf.Answers
     public class AnswerService : IAnswerService
     {
         private static readonly ConcurrentDictionary<Guid, BlockingCollection<Answer>> _answers = new ConcurrentDictionary<Guid, BlockingCollection<Answer>>();
+        private readonly IPlayerService _playerService;
+
+        public AnswerService(IPlayerService playerService)
+        {
+            _playerService = playerService;
+        }
 
         public Task<bool> AllAnswersSubmitted(Guid sessionId)
         {
@@ -44,6 +51,14 @@ namespace Moron.Server.Games.WhatIf.Answers
             else
                 _answers.TryAdd(sessionId, answers);
             return Task.FromResult(answers as IEnumerable<Answer>);
+        }
+
+        public Task<IEnumerable<Player>> GetPlayersRemainingAnswers(Guid sessionId)
+        {
+            var answers = _answers[sessionId];
+            var unfinishedAnswers = answers.Where(x => !x.Submitted);
+            var playerIds = unfinishedAnswers.Select(x => x.CreatedBy).Distinct();
+            return _playerService.Get(playerIds);
         }
 
         public Task<Answer> Get(Guid sessionId, Guid answerId)

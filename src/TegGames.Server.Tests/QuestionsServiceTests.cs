@@ -1,6 +1,7 @@
 ﻿using Moq;
 using Moron.Server.Games.WhatIf.Options;
 using Moron.Server.Games.WhatIf.Questions;
+using Moron.Server.Players;
 using Moron.Server.SessionPlayers;
 using System;
 using System.Collections.Generic;
@@ -64,7 +65,9 @@ namespace TegGames.Server.Tests
             var whatIfOptionServiceMock = new Mock<IWhatIfOptionService>();
             whatIfOptionServiceMock.Setup(x => x.Get(sessionId)).ReturnsAsync(options);
 
-            var cut = new QuestionService(sessionPlayerServiceMock.Object, whatIfOptionServiceMock.Object);
+            var playerServiceMock = new Mock<IPlayerService>();
+
+            var cut = new QuestionService(sessionPlayerServiceMock.Object, whatIfOptionServiceMock.Object, playerServiceMock.Object);
             var questions = await cut.GenerateQuestionsForSession(sessionId);
 
             foreach (var player in playersInSesssion)

@@ -42,6 +42,13 @@
 @if (Submitted)
 {
     <h1>Waiting for others players to finish answering</h1>
+    foreach (var player in RemainingPlayers)
+    {
+        <span class="mdl-chip mdl-chip--contact">
+            <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">@player.Name.First()</span>
+            <span class="mdl-chip__text">@player.Name</span>
+        </span>
+    }
 }
 
 @functions {
@@ -55,6 +62,7 @@
 
     public List<Question> Questions { get; set; }
     public List<Answer> Answers { get; set; }
+    public List<Player> RemainingPlayers { get; set; }
 
     System.Timers.Timer Timer;
 
@@ -63,6 +71,8 @@
         var options = await optionService.Get(SessionId);
         Questions = (await questionService.GetQuestionsAssignedToPlayer(SessionId, PlayerId)).ToList();
         Answers = (await answerService.GetPlayerAnswers(SessionId, PlayerId)).ToList();
+        RemainingPlayers = new List<Player>();
+        Submitted = Answers.All(x => x.Submitted);
         Timer = new System.Timers.Timer(500);
         Timer.Elapsed += Elapsed;
         Timer.Start();
@@ -70,11 +80,25 @@
 
     private async void Elapsed(object sender, System.Timers.ElapsedEventArgs e)
     {
-        if (await answerService.AllAnswersSubmitted(SessionId))
+        Timer.Stop();
+        try
         {
-            uriHelper.NavigateTo($"whatif/session/{SessionId}/{PlayerId}/Game");
-            Timer.Stop();
+            if (await answerService.AllAnswersSubmitted(SessionId))
+            {
+                uriHelper.NavigateTo($"whatif/session/{SessionId}/{PlayerId}/Game");
+                return;
+            }
+            else if (Submitted)
+            {
+                RemainingPlayers = (await answerService.GetPlayersRemainingAnswers(SessionId)).ToList();
+                await this.Invoke(StateHasChanged);
+            }
         }
+        catch (Exception)
+        {
+            // Ignored
+        }
+        Timer.Start();
     }
 
     async Task Submit()

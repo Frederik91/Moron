@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Moron.Server.Players;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,5 +16,6 @@ namespace Moron.Server.Games.WhatIf.Questions
         Task<IEnumerable<Question>> GetQuestionsCreatedByPlayer(Guid sessionId, Guid playerId);
         Task<IEnumerable<Question>> GetQuestionsInSession(Guid sessionId);
         Task<Question> Get(Guid sessionId, Guid questionId);
+        Task<IEnumerable<Player>> GetPlayersRemainingQuestions(Guid sessionId);
     }
 }

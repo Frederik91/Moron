@@ -142,36 +142,45 @@ else
 
     private async void Elapsed(object sender, System.Timers.ElapsedEventArgs e)
     {
-        var turn = await gameService.GetTurn(SessionId);
-        if (turn is null)
+        Timer.Stop();
+        try
         {
-            uriHelper.NavigateTo($"whatif/session/{SessionId}/Finish");
-            Timer.Stop();
-            return;
+            var turn = await gameService.GetTurn(SessionId);
+            if (turn is null)
+            {
+                uriHelper.NavigateTo($"whatif/session/{SessionId}/Finish");
+                Timer.Stop();
+                return;
+            }
+
+            if (turn.PlayerQuestionId != PlayerId && turn.PlayerAnswerId != PlayerId)
+            {
+                Answer = null;
+                Question = null;
+                await this.Invoke(this.StateHasChanged);
+                return;
+            }
+
+            if (turn.PlayerQuestionId == PlayerId && Question?.Id != turn.QuestionId)
+            {
+                Answer = null;
+                Question = await questionService.Get(SessionId, turn.QuestionId);
+                await this.Invoke(this.StateHasChanged);
+                return;
+            }
+            if (turn.PlayerAnswerId == PlayerId && Answer?.Id != turn.AnswerId)
+            {
+                Question = null;
+                Answer = await answerService.Get(SessionId, turn.AnswerId);
+                await this.Invoke(this.StateHasChanged);
+                return;
+            }
+        }
+        finally
+        {
+            Timer.Start();
         }
 
-        if (turn.PlayerQuestionId != PlayerId && turn.PlayerAnswerId != PlayerId)
-        {
-            Answer = null;
-            Question = null;
-            await this.Invoke(this.StateHasChanged);
-            return;
-        }
-
-        if (turn.PlayerQuestionId == PlayerId && Question?.Id != turn.QuestionId)
-        {
-            Answer = null;
-            Question = await questionService.Get(SessionId, turn.QuestionId);
-            await this.Invoke(this.StateHasChanged);
-            return;
-        }
-        if (turn.PlayerAnswerId == PlayerId && Answer?.Id != turn.AnswerId)
-        {
-            Question = null;
-            Answer = await answerService.Get(SessionId, turn.AnswerId);
-            await this.Invoke(this.StateHasChanged);
-            return;
-        }
     }
 
     async Task Next()

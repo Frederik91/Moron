@@ -15,11 +15,13 @@ namespace Moron.Server.Games.WhatIf.Questions
         private static readonly ConcurrentDictionary<Guid, List<Question>> _questions = new ConcurrentDictionary<Guid, List<Question>>();
         private readonly ISessionPlayerService _sessionPlayerService;
         private readonly IWhatIfOptionService _whatIfOptionService;
+        private readonly IPlayerService _playerService;
 
-        public QuestionService(ISessionPlayerService sessionPlayerService, IWhatIfOptionService whatIfOptionService)
+        public QuestionService(ISessionPlayerService sessionPlayerService, IWhatIfOptionService whatIfOptionService, IPlayerService playerService)
         {
             _sessionPlayerService = sessionPlayerService;
             _whatIfOptionService = whatIfOptionService;
+            _playerService = playerService;
         }
 
         public Task<bool> AllQuestionsSubmitted(Guid sessionId)
@@ -75,6 +77,14 @@ namespace Moron.Server.Games.WhatIf.Questions
         {
             var question = _questions[sessionId].FirstOrDefault(x => x.Id == questionId);
             return Task.FromResult(question);
+        }
+
+        public Task<IEnumerable<Player>> GetPlayersRemainingQuestions(Guid sessionId)
+        {
+            var questions = _questions[sessionId];
+            var unfinishedQuestions = questions.Where(x => !x.Submitted);
+            var playerIds = unfinishedQuestions.Select(x => x.CreatedBy).Distinct();
+            return _playerService.Get(playerIds);
         }
 
         public Task<IEnumerable<Question>> GetQuestionsAssignedToPlayer(Guid sessionId, Guid playerId)
