@@ -2,7 +2,7 @@
 using Moron.Server.Games.WhatIf.Options;
 using Moron.Server.Games.WhatIf.Questions;
 using Moron.Server.Players;
-using Moron.Server.SessionPlayers;
+using Moron.Server.Sessions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,29 +53,32 @@ namespace TegGames.Server.Tests
         public async Task GenerateQuestionsForSession_GenerateQuestions(int playerCount, int numberOfCards)
         {
             var sessionId = Guid.NewGuid();
-            var playersInSesssion = new List<Guid>();
+            var playersInSesssion = new List<Player>();
             for (int i = 0; i < playerCount; i++)
             {
-                playersInSesssion.Add(Guid.NewGuid());
+                playersInSesssion.Add(new Player
+                {
+                    PlayerId = Guid.NewGuid()
+                });
             }
             var options = new WhatIfOption { Id = Guid.NewGuid(), NumberOfCards = numberOfCards };
 
-            var sessionPlayerServiceMock = new Mock<ISessionPlayerService>();
-            sessionPlayerServiceMock.Setup(x => x.GetPlayersInSession(sessionId)).ReturnsAsync(playersInSesssion);
+            var sessionServiceMock = new Mock<ISessionService>();
+            sessionServiceMock.Setup(x => x.GetPlayersInSession(sessionId)).ReturnsAsync(playersInSesssion);
             var whatIfOptionServiceMock = new Mock<IWhatIfOptionService>();
             whatIfOptionServiceMock.Setup(x => x.Get(sessionId)).ReturnsAsync(options);
 
             var playerServiceMock = new Mock<IPlayerService>();
 
-            var cut = new QuestionService(sessionPlayerServiceMock.Object, whatIfOptionServiceMock.Object, playerServiceMock.Object);
+            var cut = new QuestionService(whatIfOptionServiceMock.Object, playerServiceMock.Object, sessionServiceMock.Object);
             var questions = await cut.GenerateQuestionsForSession(sessionId);
 
             foreach (var player in playersInSesssion)
             {
-                var questionsCreatedByPlayer = (await cut.GetQuestionsCreatedByPlayer(sessionId, player)).ToList();
+                var questionsCreatedByPlayer = (await cut.GetQuestionsCreatedByPlayer(sessionId, player.PlayerId)).ToList();
                 Assert.Equal(options.NumberOfCards, questionsCreatedByPlayer.Count);
 
-                var questionsAssignedPlayerAnswer = (await cut.GetQuestionsAssignedToPlayer(sessionId, player)).ToList();
+                var questionsAssignedPlayerAnswer = (await cut.GetQuestionsAssignedToPlayer(sessionId, player.PlayerId)).ToList();
                 Assert.Equal(options.NumberOfCards, questionsAssignedPlayerAnswer.Count);
             }
         }

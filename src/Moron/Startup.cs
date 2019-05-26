@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Moron.Server.Contexts;
 using Moron.Server.Games.WhatIf.Answers;
 using Moron.Server.Games.WhatIf.Games;
 using Moron.Server.Games.WhatIf.Options;
@@ -11,9 +12,10 @@ using Moron.Server.Games.WhatIf.Questions;
 using Moron.Server.Helpers;
 using Moron.Server.Hubs;
 using Moron.Server.Players;
-using Moron.Server.SessionPlayers;
 using Moron.Server.Sessions;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using System.Data.SQLite;
 
 namespace Moron
 {
@@ -32,17 +34,20 @@ namespace Moron
             services.AddRazorPages();
 
             services.AddServerSideBlazor();
-                //.AddSignalR().AddAzureSignalR(Configuration["Azure:SignalR:ConnectionString"]);
+            //.AddSignalR().AddAzureSignalR(Configuration["Azure:SignalR:ConnectionString"]);
 
-            services.AddSingleton<ISessionService, SessionService>();
+            services.AddScoped<ISessionService, SessionService>();
             services.AddSingleton<IJoinIdGenerator, JoinIdGenerator>();
-            services.AddSingleton<IPlayerService, PlayerService>();
-            services.AddSingleton<ISessionPlayerService, SessionPlayerService>();
-            services.AddSingleton<IWhatIfOptionService, WhatIfOptionService>();
-            services.AddSingleton<IQuestionService, QuestionService>();
-            services.AddSingleton<IAnswerService, AnswerService>();
-            services.AddSingleton<IGameService, GameService>();
+            services.AddScoped<IPlayerService, PlayerService>();
+            services.AddScoped<IWhatIfOptionService, WhatIfOptionService>();
+            services.AddScoped<IQuestionService, QuestionService>();
+            services.AddScoped<IAnswerService, AnswerService>();
+            services.AddScoped<IGameService, GameService>();
             services.AddSingleton<SessionHub>();
+
+            var connectionString = Configuration.GetConnectionString("DefaultConnection");
+            SQLiteConnection.CreateFile("TegGamesDb.sqlite");
+            services.AddDbContext<CommonContext>(opt => opt.UseSqlite(connectionString)) ;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

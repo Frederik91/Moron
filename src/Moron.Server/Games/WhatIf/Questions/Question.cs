@@ -10,7 +10,7 @@ namespace Moron.Server.Games.WhatIf.Questions
         public string Text { get; set; }
         public bool Submitted { get; set; }
         public Guid SessionId { get; set; }
-        public Guid CreatedBy { get; set; }
-        public Guid AssignedToPlayer { get; set; }
+        public Guid CreatedByForeignKey { get; set; }
+        public Guid AssignedToPlayerForeignKey { get; set; }
     }
 }

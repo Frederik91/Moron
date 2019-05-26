@@ -1,9 +1,9 @@
 ﻿@page "/whatif/session/create"
-@inject ISessionService sessionService
+@inject SessionService sessionService
 @inject IUriHelper uriHelper
 @inject IPlayerService playerService
-@inject ISessionPlayerService sessionPlayerService
 @inject IWhatIfOptionService optionService
+@inject ISessionService sessionService
 
 <h1>Create a new session</h1>
 
@@ -24,9 +24,8 @@
             return;
         }
         var player = await playerService.Create(playerName);
-        var session = await sessionService.CreateAsync(sessionName, player.Id);
-        await optionService.Create(session.Id);
-        await sessionPlayerService.AddPlayerToSession(session.Id, player.Id);
-        uriHelper.NavigateTo($"whatif/session/{session.Id}/{player.Id}/lobby");
+        var session = await sessionService.CreateAsync(sessionName, player.PlayerId);
+        await optionService.Create(session.SessionId);
+        uriHelper.NavigateTo($"whatif/session/{session.SessionId}/{player.PlayerId}/lobby");
     }
 }

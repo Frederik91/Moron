@@ -3,7 +3,6 @@
 @inject IGameService gameService
 @inject IQuestionService questionService
 @inject IAnswerService answerService
-@inject ISessionPlayerService sessionPlayerService
 @inject IPlayerService playerService
 @inject IUriHelper uriHelper
 @inject IConfiguration configuration
@@ -15,7 +14,7 @@
     <h2>Invite others to join using this code: </h2>
 
     <h1 class="text-center">@ActiveSession.JoinId</h1>
-    <h3 class="text-center">Game master is @Owner.Name</h3>
+    <h3 class="text-center">Game master is @ActiveSession.Owner.Name</h3>
 
     if (IsOwner)
     {
@@ -51,13 +50,11 @@
     [Parameter]
     public Guid PlayerId { get; set; }
 
-    public Player Owner { get; set; }
-
-    public bool IsOwner => Owner?.Id == PlayerId;
+    public bool IsOwner => ActiveSession?.Owner?.PlayerId == PlayerId;
 
     public WhatIfOption Options { get; set; }
 
-    ISession ActiveSession { get; set; }
+    Session ActiveSession { get; set; }
 
     [Parameter]
     public List<Player> Players { get; set; }
@@ -68,7 +65,6 @@
         Players = new List<Player>();
         ActiveSession = await sessionService.GetAsync(SessionId);
         Options = await optionService.Get(SessionId);
-        Owner = await playerService.Get(ActiveSession.OwnerId);
         await UpdatePlayers();
         Timer = new System.Timers.Timer(500);
         Timer.Elapsed += Elapsed;
@@ -82,7 +78,7 @@
         if (path?.ToLower().Contains("whatif") != true)
         {
             uriHelper.OnLocationChanged -= LocationChanged;
-            await sessionPlayerService.RemovePlayerFromSession(ActiveSession.Id, PlayerId);
+            await sessionService.RemovePlayerFromSession(ActiveSession.SessionId, PlayerId);
         }
     }
 
@@ -93,18 +89,17 @@
             return;
         }
 
-        var questions = await questionService.GenerateQuestionsForSession(ActiveSession.Id);
-        await answerService.GenerateSessionAnswers(ActiveSession.Id, questions);
-        await gameService.Start(ActiveSession.Id);
-        await sessionService.Start(ActiveSession.Id);
+        var questions = await questionService.GenerateQuestionsForSession(ActiveSession.SessionId);
+        await answerService.GenerateSessionAnswers(ActiveSession.SessionId, questions);
+        await gameService.Start(ActiveSession.SessionId);
+        await sessionService.Start(ActiveSession.SessionId);
         uriHelper.NavigateTo($"/whatif/session/{SessionId}/{PlayerId}/Questions");
         Timer.Stop();
     }
 
     async Task UpdatePlayers()
     {
-        var playerIds = await sessionPlayerService.GetPlayersInSession(ActiveSession.Id);
-        var players = await playerService.Get(playerIds);
+        var players = await sessionService.GetPlayersInSession(ActiveSession.SessionId);
         Players = players?.ToList();
     }
 
@@ -118,7 +113,7 @@
 
     async Task RefreshOptions()
     {
-        var savedOptions = await optionService.Get(ActiveSession.Id);
+        var savedOptions = await optionService.Get(ActiveSession.SessionId);
         if (!IsOwner)
         {
             Options = savedOptions;

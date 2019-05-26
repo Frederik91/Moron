@@ -2,7 +2,6 @@
 using Moron.Server.Games.WhatIf.Options;
 using Moron.Server.Games.WhatIf.Questions;
 using Moron.Server.Players;
-using Moron.Server.SessionPlayers;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -38,7 +37,7 @@ namespace Moron.Server.Games.WhatIf.Answers
                     Id = Guid.NewGuid(),
                     SessionId = sessionId,
                     QuestionId = question.Id,
-                    CreatedBy = question.AssignedToPlayer
+                    CreatedByForeignKey = question.AssignedToPlayerForeignKey
                 };
                 answers.Add(answer);
             }
@@ -57,7 +56,7 @@ namespace Moron.Server.Games.WhatIf.Answers
         {
             var answers = _answers[sessionId];
             var unfinishedAnswers = answers.Where(x => !x.Submitted);
-            var playerIds = unfinishedAnswers.Select(x => x.CreatedBy).Distinct();
+            var playerIds = unfinishedAnswers.Select(x => x.CreatedByForeignKey).Distinct();
             return _playerService.Get(playerIds);
         }
 
@@ -75,7 +74,7 @@ namespace Moron.Server.Games.WhatIf.Answers
         public Task<IEnumerable<Answer>> GetPlayerAnswers(Guid sessionId, Guid playerId)
         {
             _answers.TryGetValue(sessionId, out var answersInSession);
-            var answers = answersInSession.Where(x => x.CreatedBy == playerId);
+            var answers = answersInSession.Where(x => x.CreatedByForeignKey == playerId);
             return Task.FromResult(answers);
         }
 

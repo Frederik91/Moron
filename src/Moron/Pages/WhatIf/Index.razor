@@ -1,7 +1,6 @@
 ﻿@page "/whatif/"
 @inject ISessionService sessionService
 @inject IPlayerService playerService
-@inject ISessionPlayerService sessionPlayerService
 @inject IUriHelper uriHelper
 
 <h1>What if?</h1>
@@ -74,13 +73,13 @@
         }
         var session = await sessionService.GetSessionAsync(id);
         var player = await playerService.Create(name);
-        await sessionPlayerService.AddPlayerToSession(session.Id, player.Id);
+        await sessionService.AddPlayerToSession(session.SessionId, player.PlayerId);
         if (session is null)
         {
             warning = "Session not found";
             return;
         }
-        uriHelper.NavigateTo($"whatif/session/{session.Id}/{player.Id}/lobby");
+        uriHelper.NavigateTo($"whatif/session/{session.SessionId}/{player.PlayerId}/lobby");
 
     }
 

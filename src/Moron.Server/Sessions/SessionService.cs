@@ -1,5 +1,8 @@
-﻿using Moron.Server.Helpers;
+﻿using Microsoft.EntityFrameworkCore;
+using Moron.Server.Contexts;
+using Moron.Server.Helpers;
 using Moron.Server.Hubs;
+using Moron.Server.Players;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,43 +13,83 @@ namespace Moron.Server.Sessions
     public class SessionService : ISessionService
     {
         private readonly IJoinIdGenerator _joinIdGenerator;
-        private static readonly List<ISession> _sessions = new List<ISession>();
+        private readonly CommonContext _commonContext;
 
-        public SessionService(IJoinIdGenerator joinIdGenerator)
+        public SessionService(IJoinIdGenerator joinIdGenerator, CommonContext commonContext)
         {
             _joinIdGenerator = joinIdGenerator;
+            _commonContext = commonContext;
         }
 
-        public Task<ISession> GetAsync(Guid sessionId)
+        public async Task<Session> GetAsync(Guid sessionId)
         {
-            var session = _sessions.FirstOrDefault(x => x.Id == sessionId);
-            return Task.FromResult(session);
+            return await _commonContext.FindAsync<Session>(sessionId);
         }
 
-        public Task<ISession> GetSessionAsync(int joinId)
+        public async Task<Session> GetSessionAsync(int joinId)
         {
-            var session = _sessions.FirstOrDefault(x => x.JoinId == joinId);
-            return Task.FromResult(session);
+            var session = _commonContext.Sessions.AsQueryable().SingleOrDefault(x => x.JoinId == joinId && !x.Started);
+            return await GetAsync(session.SessionId);
         }
 
-        public Task<ISession> CreateAsync(string name, Guid ownerId)
+        public async Task<Session> CreateAsync(string name, Guid ownerId)
         {
-            ISession session = new GameSession
+            var owner = _commonContext.Find<Player>(ownerId);
+            Session session = new Session
             {
-                Id = Guid.NewGuid(),
+                SessionId = Guid.NewGuid(),
                 JoinId = _joinIdGenerator.Generate(),
                 Name = name,
-                OwnerId = ownerId
+                Owner = owner
             };
-            _sessions.Add(session);
-            return Task.FromResult(session);
+            session.PlayersLink = new List<PlayerSession>
+            {
+                new PlayerSession
+                {
+                    Player = owner,
+                    Session = session
+                }
+            };
+            _commonContext.Sessions.Add(session);
+            await _commonContext.SaveChangesAsync();
+            return await GetAsync(session.SessionId);
         }
 
-        public Task Start(Guid sessionId)
+        public async Task Start(Guid sessionId)
         {
-            var session = _sessions.First(x => x.Id == sessionId);
+            var session = await GetAsync(sessionId);
             session.Started = true;
-            return Task.CompletedTask;
+            _commonContext.Update(session);
+            await _commonContext.SaveChangesAsync();
+        }
+
+        public async Task AddPlayerToSession(Guid sessionId, Guid playerId)
+        {
+            var session = _commonContext.Sessions
+            .Include(p => p.PlayersLink)
+            .Single(p => p.SessionId == sessionId);
+            var player = _commonContext.Players.Find(playerId);
+
+            session.PlayersLink.Add(new PlayerSession
+            {
+                Session = session,
+                Player = player,
+            });
+
+            await _commonContext.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Player>> GetPlayersInSession(Guid sessionId)
+        {
+            var session = await GetAsync(sessionId);
+            return session.PlayersLink.Select(x => x.Player);
+        }
+
+        public async Task RemovePlayerFromSession(Guid sessionId, Guid playerId)
+        {
+            var session = await _commonContext.Sessions.AsQueryable().FirstAsync(x => x.SessionId == sessionId);
+            session.PlayersLink.Remove(session.PlayersLink.First(x => x.PlayerId == playerId));
+            await _commonContext.SaveChangesAsync();
         }
     }
 }

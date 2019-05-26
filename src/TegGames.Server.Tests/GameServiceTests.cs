@@ -3,7 +3,7 @@ using Moron.Server.Games.WhatIf.Answers;
 using Moron.Server.Games.WhatIf.Games;
 using Moron.Server.Games.WhatIf.Options;
 using Moron.Server.Games.WhatIf.Questions;
-using Moron.Server.SessionPlayers;
+using Moron.Server.Players;
 using Moron.Server.Sessions;
 using System;
 using System.Collections.Generic;
@@ -57,10 +57,13 @@ namespace TegGames.Server.Tests
         public async Task StartGame(int playerCount, int numberOfCards)
         {
             var sessionId = Guid.NewGuid();
-            var players = new List<Guid>();
+            var players = new List<Player>();
             for (var i = 0; i < playerCount; i++)
             {
-                players.Add(Guid.NewGuid());
+                players.Add(new Player
+                {
+                    PlayerId = Guid.NewGuid()
+                });
             }
             var questions = new List<Question>();
             for (var i = 0; i < players.Count * numberOfCards; i++)
@@ -68,7 +71,7 @@ namespace TegGames.Server.Tests
                 var question = new Question
                 {
                     Id = Guid.NewGuid(),
-                    CreatedBy = players[i%players.Count],
+                    CreatedByForeignKey = players[i % players.Count].PlayerId,
                     SessionId = sessionId,
                     Submitted = true,
                     Text = $"Q{i}"
@@ -79,12 +82,12 @@ namespace TegGames.Server.Tests
             var answers = new List<Answer>();
             for (var i = 0; i < players.Count * numberOfCards; i++)
             {
-                var createdBy = players[(i % players.Count + 1 % players.Count) == players.Count ? 0 : (i % players.Count + 1 % players.Count)]; 
+                var createdBy = players[(i % players.Count + 1 % players.Count) == players.Count ? 0 : (i % players.Count + 1 % players.Count)];
                 var answer = new Answer
                 {
                     Id = Guid.NewGuid(),
-                    CreatedBy = createdBy,
-                    QuestionId = questions[i%players.Count].Id,
+                    CreatedByForeignKey = createdBy.PlayerId,
+                    QuestionId = questions[i % players.Count].Id,
                     SessionId = sessionId,
                     Submitted = true,
                     Text = $"A{i}"
@@ -92,15 +95,15 @@ namespace TegGames.Server.Tests
                 answers.Add(answer);
             }
 
-            var sessionPlayerServiceMock = new Mock<ISessionPlayerService>();
-            sessionPlayerServiceMock.Setup(x => x.GetPlayersInSession(sessionId)).ReturnsAsync(players);
+            var sessionServiceMock = new Mock<ISessionService>();
+            sessionServiceMock.Setup(x => x.GetPlayersInSession(sessionId)).ReturnsAsync(players);
             var questionServiceMock = new Mock<IQuestionService>();
             questionServiceMock.Setup(x => x.GetQuestionsInSession(sessionId)).ReturnsAsync(questions);
             var answerServiceMock = new Mock<IAnswerService>();
             answerServiceMock.Setup(x => x.GetAnswersInSession(sessionId)).ReturnsAsync(answers);
             var optionsMock = new Mock<IWhatIfOptionService>();
             optionsMock.Setup(x => x.Get(sessionId)).ReturnsAsync(new WhatIfOption { Id = Guid.NewGuid(), NumberOfCards = numberOfCards });
-            var cut = new GameService(sessionPlayerServiceMock.Object, questionServiceMock.Object, answerServiceMock.Object, optionsMock.Object);
+            var cut = new GameService(questionServiceMock.Object, answerServiceMock.Object, optionsMock.Object, sessionServiceMock.Object);
 
             await cut.Start(sessionId);
 

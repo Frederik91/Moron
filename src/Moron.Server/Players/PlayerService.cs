@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Moron.Server.Contexts;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,25 +11,32 @@ namespace Moron.Server.Players
 {
     public class PlayerService : IPlayerService
     {
-        private static readonly ConcurrentDictionary<Guid, Player> _players = new ConcurrentDictionary<Guid, Player>();
+        //private static readonly ConcurrentDictionary<Guid, Player> _players = new ConcurrentDictionary<Guid, Player>();
+        private readonly CommonContext _commonContext;
 
-        public Task<Player> Create(string name)
+        public PlayerService(CommonContext commonContext)
         {
-            var player = new Player { Id = Guid.NewGuid(), Name = name };
-            _players.TryAdd(player.Id, player);
-            return Task.FromResult(player);
+            _commonContext = commonContext;
         }
 
-        public Task<Player> Get(Guid id)
+        public async Task<Player> Create(string name)
         {
-            _players.TryGetValue(id, out var player);
-            return Task.FromResult(player);
+            var player = new Player { PlayerId = Guid.NewGuid(), Name = name };
+            _commonContext.Add(player);
+            await _commonContext.SaveChangesAsync();
+            return await Get(player.PlayerId);
         }
 
-        public Task<IEnumerable<Player>> Get(IEnumerable<Guid> ids)
+        public async Task<Player> Get(Guid id)
         {
-            var players = ids.Where(x => _players.ContainsKey(x)).Select(x => _players[x]);
-            return Task.FromResult(players);
+            var res = await _commonContext.FindAsync<Player>(id);
+            return res;
+        }
+
+        public async Task<IEnumerable<Player>> Get(IEnumerable<Guid> ids)
+        {
+            var players = await _commonContext.Players.Where(x => ids.Contains(x.PlayerId)).ToListAsync();
+            return players;
         }
     }
 }

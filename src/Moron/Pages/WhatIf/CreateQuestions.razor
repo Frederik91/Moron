@@ -1,6 +1,5 @@
 ﻿@page "/whatif/session/{SessionId:guid}/{PlayerId:guid}/Questions"
 @inject ISessionService sessionService
-@inject ISessionPlayerService sessionPlayerService
 @inject IPlayerService playerService
 @inject IUriHelper uriHelper
 @inject IConfiguration configuration
@@ -59,7 +58,7 @@
     [Parameter]
     public Guid PlayerId { get; set; }
 
-    ISession ActiveSession { get; set; }
+    Session ActiveSession { get; set; }
 
     public bool Submitted { get; set; }
 
@@ -91,7 +90,7 @@
         if (path?.ToLower().Contains("whatif") != true)
         {
             uriHelper.OnLocationChanged -= LocationChanged;
-            await sessionPlayerService.RemovePlayerFromSession(ActiveSession.Id, PlayerId);
+            await sessionService.RemovePlayerFromSession(ActiveSession.SessionId, PlayerId);
             Timer.Stop();
         }
     }
@@ -112,7 +111,7 @@
         Timer.Stop();
         try
         {
-            if (Submitted && await questionService.AllQuestionsSubmitted(ActiveSession.Id))
+            if (Submitted && await questionService.AllQuestionsSubmitted(ActiveSession.SessionId))
             {
                 uriHelper.NavigateTo($"whatif/session/{SessionId}/{PlayerId}/answers");
                 return;
