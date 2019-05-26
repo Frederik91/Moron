@@ -14,7 +14,7 @@
     <h2>Invite others to join using this code: </h2>
 
     <h1 class="text-center">@ActiveSession.JoinId</h1>
-    <h3 class="text-center">Game master is @ActiveSession.Owner.Name</h3>
+    <h3 class="text-center">Game master is @ActiveSession.Owner?.Name</h3>
 
     if (IsOwner)
     {
@@ -28,19 +28,27 @@
         <h4>Number of cards: @Options.NumberOfCards</h4>
     }
 
-
-    @foreach (var player in Players)
+    if (Players?.All(x => x != null) == true)
     {
-        <span class="mdl-chip mdl-chip--contact">
-            <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">@player.Name.First()</span>
-            <span class="mdl-chip__text">@player.Name</span>
-        </span>
+        @foreach (var player in Players)
+        {
+            <span class="mdl-chip mdl-chip--contact">
+                <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">@player.Name.First()</span>
+                <span class="mdl-chip__text">@player.Name</span>
+            </span>
+        }
+
+        if (IsOwner)
+        {
+            <button onclick="@Start" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Start</button>
+        }
+    }
+    else
+    {
+        <h4>No players in session</h4>
     }
 
-    if (IsOwner)
-    {
-        <button onclick="@Start" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Start</button>
-    }
+
 }
 
 @functions {

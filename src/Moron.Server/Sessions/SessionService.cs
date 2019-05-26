@@ -28,8 +28,8 @@ namespace Moron.Server.Sessions
 
         public async Task<Session> GetSessionAsync(int joinId)
         {
-            var session = _commonContext.Sessions.AsQueryable().SingleOrDefault(x => x.JoinId == joinId && !x.Started);
-            return await GetAsync(session.SessionId);
+            var session = await _commonContext.Sessions.AsQueryable().SingleOrDefaultAsync(x => x.JoinId == joinId && !x.Started);
+            return session;
         }
 
         public async Task<Session> CreateAsync(string name, Guid ownerId)
@@ -75,6 +75,8 @@ namespace Moron.Server.Sessions
                 Session = session,
                 Player = player,
             });
+
+            _commonContext.Entry(session).State = EntityState.Modified;
 
             await _commonContext.SaveChangesAsync();
         }
