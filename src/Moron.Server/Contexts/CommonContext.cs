@@ -32,5 +32,6 @@ namespace Moron.Server.Contexts
 
         public DbSet<Player> Players { get; set; }
         public DbSet<Session> Sessions { get; set; }
+        public DbSet<PlayerSession> PlayerSessions { get; set; }
     }
 }

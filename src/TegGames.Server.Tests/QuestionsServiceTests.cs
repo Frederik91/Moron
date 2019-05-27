@@ -58,7 +58,7 @@ namespace TegGames.Server.Tests
             {
                 playersInSesssion.Add(new Player
                 {
-                    PlayerId = Guid.NewGuid()
+                    Id = Guid.NewGuid()
                 });
             }
             var options = new WhatIfOption { Id = Guid.NewGuid(), NumberOfCards = numberOfCards };
@@ -75,10 +75,10 @@ namespace TegGames.Server.Tests
 
             foreach (var player in playersInSesssion)
             {
-                var questionsCreatedByPlayer = (await cut.GetQuestionsCreatedByPlayer(sessionId, player.PlayerId)).ToList();
+                var questionsCreatedByPlayer = (await cut.GetQuestionsCreatedByPlayer(sessionId, player.Id)).ToList();
                 Assert.Equal(options.NumberOfCards, questionsCreatedByPlayer.Count);
 
-                var questionsAssignedPlayerAnswer = (await cut.GetQuestionsAssignedToPlayer(sessionId, player.PlayerId)).ToList();
+                var questionsAssignedPlayerAnswer = (await cut.GetQuestionsAssignedToPlayer(sessionId, player.Id)).ToList();
                 Assert.Equal(options.NumberOfCards, questionsAssignedPlayerAnswer.Count);
             }
         }

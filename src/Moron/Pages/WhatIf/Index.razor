@@ -73,13 +73,13 @@
         }
         var session = await sessionService.GetSessionAsync(id);
         var player = await playerService.Create(name);
-        await sessionService.AddPlayerToSession(session.SessionId, player.PlayerId);
+        await sessionService.AddPlayerToSession(session.Id, player.Id);
         if (session is null)
         {
             warning = "Session not found";
             return;
         }
-        uriHelper.NavigateTo($"whatif/session/{session.SessionId}/{player.PlayerId}/lobby");
+        uriHelper.NavigateTo($"whatif/session/{session.Id}/{player.Id}/lobby");
 
     }
 

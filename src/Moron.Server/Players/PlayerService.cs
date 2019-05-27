@@ -21,10 +21,10 @@ namespace Moron.Server.Players
 
         public async Task<Player> Create(string name)
         {
-            var player = new Player { PlayerId = Guid.NewGuid(), Name = name };
+            var player = new Player { Id = Guid.NewGuid(), Name = name, SessionsLink = new List<Sessions.PlayerSession>() };
             _commonContext.Add(player);
             await _commonContext.SaveChangesAsync();
-            return await Get(player.PlayerId);
+            return await Get(player.Id);
         }
 
         public async Task<Player> Get(Guid id)
@@ -35,7 +35,7 @@ namespace Moron.Server.Players
 
         public async Task<IEnumerable<Player>> Get(IEnumerable<Guid> ids)
         {
-            var players = await _commonContext.Players.Where(x => ids.Contains(x.PlayerId)).ToListAsync();
+            var players = await _commonContext.Players.Where(x => ids.Contains(x.Id)).ToListAsync();
             return players;
         }
     }

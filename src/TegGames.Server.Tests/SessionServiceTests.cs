@@ -33,41 +33,50 @@ namespace TegGames.Server.Tests
             var playerService = new PlayerService(_context);
             var player = await playerService.Create("Test player");
             var cut = new SessionService(joinIdGeneratorMock.Object, _context);
-            var session = await cut.CreateAsync(name, player.PlayerId);
+            var session = await cut.CreateAsync(name, player.Id);
 
             Assert.NotNull(session);
             Assert.Equal(name, session.Name);
-            Assert.Equal(player.PlayerId, session.OwnerId);
-            Assert.Equal(player.PlayerId, session.Owner.PlayerId);
+            Assert.Equal(player.Id, session.OwnerId);
             Assert.Single(session.PlayersLink);
         }
 
-        [Fact]
-        public async Task CreateUser_CreateSession_JoineSessionNewUser()
+        [Theory]
+        [InlineData(10)]
+        public async Task CreateUser_CreateSession_JoineSessionNewUser(int playerCount)
         {
             var name = "Test";
             var joinIdGeneratorMock = new Mock<IJoinIdGenerator>();
 
-            var playerService1 = new PlayerService(_context);
-            var owner = await playerService1.Create("Owner");
-            var cut1 = new SessionService(joinIdGeneratorMock.Object, _context);
-            var session1 = await cut1.CreateAsync(name, owner.PlayerId);
+            var cut = new SessionService(joinIdGeneratorMock.Object, _context);
+            var sessionId = Guid.NewGuid();
+            for (int i = 0; i < playerCount; i++)
+            {
+                var context = CreateCommonContext(_connection);
+                var playerService = new PlayerService(context);
+                var player = await playerService.Create("Player " + i + 1);
+                var tempCut = new SessionService(joinIdGeneratorMock.Object, context);
+                if (i == 0)
+                {
+                   var s = await tempCut.CreateAsync(name, player.Id);
+                    sessionId = s.Id;
+                }
+                else
+                {
+                    await tempCut.AddPlayerToSession(sessionId, player.Id);
+                }
+            }
 
-            var context2 = CreateCommonContext(_connection);
-            var playerService2 = new PlayerService(_context);
-            var player = await playerService2.Create("Player");
-            var cut2 = new SessionService(joinIdGeneratorMock.Object, context2);
-            await cut2.AddPlayerToSession(session1.SessionId, player.PlayerId);
+            var session = await cut.GetAsync(sessionId);
 
-            session1 = await cut1.GetAsync(session1.SessionId);
-            var session2 = await cut2.GetAsync(session1.SessionId);
-            
 
-            Assert.Equal(2, session2.PlayersLink.Count);
-            Assert.True(session2.PlayersLink.TrueForAll(x => x.Player != null));
-            Assert.True(session2.PlayersLink.TrueForAll(x => x.PlayerId != Guid.Empty));
-            Assert.True(session2.PlayersLink.TrueForAll(x => x.Session != null));
-            Assert.True(session2.PlayersLink.TrueForAll(x => x.SessionId != Guid.Empty));
+
+
+            Assert.Equal(playerCount, session.PlayersLink.Count);
+            Assert.True(session.PlayersLink.TrueForAll(x => x.Player != null));
+            Assert.True(session.PlayersLink.TrueForAll(x => x.PlayerId != Guid.Empty));
+            Assert.True(session.PlayersLink.TrueForAll(x => x.Session != null));
+            Assert.True(session.PlayersLink.TrueForAll(x => x.SessionId != Guid.Empty));
         }
 
         private static CommonContext CreateCommonContext(SqliteConnection connection)

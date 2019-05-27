@@ -9,23 +9,23 @@ using Moron.Server.Contexts;
 namespace Moron.Server.Migrations
 {
     [DbContext(typeof(CommonContext))]
-    [Migration("20190526135452_InitialCreate")]
+    [Migration("20190527200247_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.0.0-preview5.19227.1");
+                .HasAnnotation("ProductVersion", "2.2.4-servicing-10062");
 
             modelBuilder.Entity("Moron.Server.Players.Player", b =>
                 {
-                    b.Property<Guid>("PlayerId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("Name");
 
-                    b.HasKey("PlayerId");
+                    b.HasKey("Id");
 
                     b.ToTable("Players");
                 });
@@ -40,12 +40,12 @@ namespace Moron.Server.Migrations
 
                     b.HasIndex("PlayerId");
 
-                    b.ToTable("PlayerSession");
+                    b.ToTable("PlayerSessions");
                 });
 
             modelBuilder.Entity("Moron.Server.Sessions.Session", b =>
                 {
-                    b.Property<Guid>("SessionId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<int>("JoinId");
@@ -56,9 +56,7 @@ namespace Moron.Server.Migrations
 
                     b.Property<bool>("Started");
 
-                    b.HasKey("SessionId");
-
-                    b.HasIndex("OwnerId");
+                    b.HasKey("Id");
 
                     b.ToTable("Sessions");
                 });
@@ -68,23 +66,12 @@ namespace Moron.Server.Migrations
                     b.HasOne("Moron.Server.Players.Player", "Player")
                         .WithMany("SessionsLink")
                         .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Moron.Server.Sessions.Session", "Session")
                         .WithMany("PlayersLink")
                         .HasForeignKey("SessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Moron.Server.Sessions.Session", b =>
-                {
-                    b.HasOne("Moron.Server.Players.Player", "Owner")
-                        .WithMany("Sessions")
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

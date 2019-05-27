@@ -43,25 +43,25 @@ namespace Moron.Server.Games.WhatIf.Questions
                 {
                     var playersAssignedQuestions = questions.GroupBy(x => x.AssignedToPlayerForeignKey);
                     var playersAssignedQuestionThisRound = questionsThisRound.Select(x => x.AssignedToPlayerForeignKey);
-                    var validPlayersToAssignTo = players.Where(x => x.PlayerId != player.PlayerId && playersAssignedQuestionThisRound?.Contains(x.PlayerId) != true);
+                    var validPlayersToAssignTo = players.Where(x => x.Id != player.Id && playersAssignedQuestionThisRound?.Contains(x.Id) != true);
 
-                    var assignToPlayerId = validPlayersToAssignTo.FirstOrDefault()?.PlayerId;
+                    var assignToPlayerId = validPlayersToAssignTo.FirstOrDefault()?.Id;
                     if (assignToPlayerId == Guid.Empty)
                     {
                         if (players.Count == 2)
-                            assignToPlayerId = players.FirstOrDefault(x => x.PlayerId != player.PlayerId)?.PlayerId;
+                            assignToPlayerId = players.FirstOrDefault(x => x.Id != player.Id)?.Id;
                         else
                         {
                             var questionToSwap = questionsThisRound.FirstOrDefault();
                             assignToPlayerId = questionToSwap.AssignedToPlayerForeignKey;
-                            questionToSwap.AssignedToPlayerForeignKey = player.PlayerId;
+                            questionToSwap.AssignedToPlayerForeignKey = player.Id;
                         }
                     }
 
                     var question = new Question
                     {
                         Id = Guid.NewGuid(),
-                        CreatedByForeignKey = player.PlayerId,
+                        CreatedByForeignKey = player.Id,
                         SessionId = sessionId,
                         AssignedToPlayerForeignKey = assignToPlayerId.GetValueOrDefault()
                     };

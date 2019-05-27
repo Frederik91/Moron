@@ -24,8 +24,8 @@
             return;
         }
         var player = await playerService.Create(playerName);
-        var session = await sessionService.CreateAsync(sessionName, player.PlayerId);
-        await optionService.Create(session.SessionId);
-        uriHelper.NavigateTo($"whatif/session/{session.SessionId}/{player.PlayerId}/lobby");
+        var session = await sessionService.CreateAsync(sessionName, player.Id);
+        await optionService.Create(session.Id);
+        uriHelper.NavigateTo($"whatif/session/{session.Id}/{player.Id}/lobby");
     }
 }

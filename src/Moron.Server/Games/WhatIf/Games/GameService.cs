@@ -49,7 +49,7 @@ namespace Moron.Server.Games.WhatIf.Games
 
         public async Task Start(Guid sessionId)
         {
-            var playerIds = (await _sessionService.GetPlayersInSession(sessionId)).OrderBy(x => x).Select(x => x.PlayerId).ToList();
+            var playerIds = (await _sessionService.GetPlayersInSession(sessionId)).OrderBy(x => x).Select(x => x.Id).ToList();
             var questions = (await _questionService.GetQuestionsInSession(sessionId)).OrderBy(x => x.CreatedByForeignKey).ToList();
             var answers = (await _answerService.GetAnswersInSession(sessionId)).OrderBy(x => x.CreatedByForeignKey).ToList();
             var options = await _whatIfOptionService.Get(sessionId);

@@ -9,7 +9,7 @@ namespace Moron.Server.Players
 {
     public class Player
     {
-        public Guid PlayerId { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public virtual List<PlayerSession> SessionsLink { get; set; }
     }

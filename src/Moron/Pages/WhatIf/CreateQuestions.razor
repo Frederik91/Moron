@@ -90,7 +90,7 @@
         if (path?.ToLower().Contains("whatif") != true)
         {
             uriHelper.OnLocationChanged -= LocationChanged;
-            await sessionService.RemovePlayerFromSession(ActiveSession.SessionId, PlayerId);
+            await sessionService.RemovePlayerFromSession(ActiveSession.Id, PlayerId);
             Timer.Stop();
         }
     }
@@ -111,7 +111,7 @@
         Timer.Stop();
         try
         {
-            if (Submitted && await questionService.AllQuestionsSubmitted(ActiveSession.SessionId))
+            if (Submitted && await questionService.AllQuestionsSubmitted(ActiveSession.Id))
             {
                 uriHelper.NavigateTo($"whatif/session/{SessionId}/{PlayerId}/answers");
                 return;

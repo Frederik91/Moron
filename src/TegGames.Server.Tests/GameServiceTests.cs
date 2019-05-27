@@ -62,7 +62,7 @@ namespace TegGames.Server.Tests
             {
                 players.Add(new Player
                 {
-                    PlayerId = Guid.NewGuid()
+                    Id = Guid.NewGuid()
                 });
             }
             var questions = new List<Question>();
@@ -71,7 +71,7 @@ namespace TegGames.Server.Tests
                 var question = new Question
                 {
                     Id = Guid.NewGuid(),
-                    CreatedByForeignKey = players[i % players.Count].PlayerId,
+                    CreatedByForeignKey = players[i % players.Count].Id,
                     SessionId = sessionId,
                     Submitted = true,
                     Text = $"Q{i}"
@@ -86,7 +86,7 @@ namespace TegGames.Server.Tests
                 var answer = new Answer
                 {
                     Id = Guid.NewGuid(),
-                    CreatedByForeignKey = createdBy.PlayerId,
+                    CreatedByForeignKey = createdBy.Id,
                     QuestionId = questions[i % players.Count].Id,
                     SessionId = sessionId,
                     Submitted = true,

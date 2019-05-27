@@ -14,7 +14,7 @@
     <h2>Invite others to join using this code: </h2>
 
     <h1 class="text-center">@ActiveSession.JoinId</h1>
-    <h3 class="text-center">Game master is @ActiveSession.Owner?.Name</h3>
+    <h3 class="text-center">Game master is @ActiveSession.PlayersLink.First(x => x.PlayerId == ActiveSession.OwnerId).Player?.Name</h3>
 
     if (IsOwner)
     {
@@ -58,7 +58,7 @@
     [Parameter]
     public Guid PlayerId { get; set; }
 
-    public bool IsOwner => ActiveSession?.Owner?.PlayerId == PlayerId;
+    public bool IsOwner => ActiveSession?.OwnerId == PlayerId;
 
     public WhatIfOption Options { get; set; }
 
@@ -86,7 +86,7 @@
         if (path?.ToLower().Contains("whatif") != true)
         {
             uriHelper.OnLocationChanged -= LocationChanged;
-            await sessionService.RemovePlayerFromSession(ActiveSession.SessionId, PlayerId);
+            await sessionService.RemovePlayerFromSession(ActiveSession.Id, PlayerId);
         }
     }
 
@@ -97,17 +97,17 @@
             return;
         }
 
-        var questions = await questionService.GenerateQuestionsForSession(ActiveSession.SessionId);
-        await answerService.GenerateSessionAnswers(ActiveSession.SessionId, questions);
-        await gameService.Start(ActiveSession.SessionId);
-        await sessionService.Start(ActiveSession.SessionId);
+        var questions = await questionService.GenerateQuestionsForSession(ActiveSession.Id);
+        await answerService.GenerateSessionAnswers(ActiveSession.Id, questions);
+        await gameService.Start(ActiveSession.Id);
+        await sessionService.Start(ActiveSession.Id);
         uriHelper.NavigateTo($"/whatif/session/{SessionId}/{PlayerId}/Questions");
         Timer.Stop();
     }
 
     async Task UpdatePlayers()
     {
-        var players = await sessionService.GetPlayersInSession(ActiveSession.SessionId);
+        var players = await sessionService.GetPlayersInSession(ActiveSession.Id);
         Players = players?.ToList();
     }
 
@@ -121,7 +121,7 @@
 
     async Task RefreshOptions()
     {
-        var savedOptions = await optionService.Get(ActiveSession.SessionId);
+        var savedOptions = await optionService.Get(ActiveSession.Id);
         if (!IsOwner)
         {
             Options = savedOptions;

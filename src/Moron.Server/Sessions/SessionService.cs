@@ -35,24 +35,26 @@ namespace Moron.Server.Sessions
         public async Task<Session> CreateAsync(string name, Guid ownerId)
         {
             var owner = _commonContext.Find<Player>(ownerId);
-            Session session = new Session
+            var session = new Session
             {
-                SessionId = Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 JoinId = _joinIdGenerator.Generate(),
                 Name = name,
-                Owner = owner
+                OwnerId = owner.Id,
+                PlayersLink = new List<PlayerSession>()
             };
-            session.PlayersLink = new List<PlayerSession>
+            _commonContext.Sessions.Attach(session);
+            var playerSession = new PlayerSession
             {
-                new PlayerSession
-                {
-                    Player = owner,
-                    Session = session
-                }
+                PlayerId = owner.Id,
+                Player = owner,
+                Session = session,
+                SessionId = session.Id
             };
-            _commonContext.Sessions.Add(session);
+            //_commonContext.Attach(playerSession);
+            session.PlayersLink.Add(playerSession);
             await _commonContext.SaveChangesAsync();
-            return await GetAsync(session.SessionId);
+            return await GetAsync(session.Id);
         }
 
         public async Task Start(Guid sessionId)
@@ -67,16 +69,22 @@ namespace Moron.Server.Sessions
         {
             var session = _commonContext.Sessions
             .Include(p => p.PlayersLink)
-            .Single(p => p.SessionId == sessionId);
-            var player = _commonContext.Players.Find(playerId);
+            .Single(p => p.Id == sessionId);
+            var player = _commonContext.Find<Player>(playerId);
 
             session.PlayersLink.Add(new PlayerSession
             {
                 Session = session,
                 Player = player,
             });
+            //var session = await _commonContext.FindAsync<Session>(sessionId);
+            //var player = await _commonContext.FindAsync<Player>(playerId);
+            //if (session.PlayersLink is null)
+            //    session.PlayersLink = new List<PlayerSession>();
+            //session.PlayersLink.Add(new PlayerSession { Player = player, Session = session });
+            //if (!_commonContext.ChangeTracker.HasChanges())
+            //    _commonContext.Update(session);
 
-            _commonContext.Entry(session).State = EntityState.Modified;
 
             await _commonContext.SaveChangesAsync();
         }
@@ -89,7 +97,7 @@ namespace Moron.Server.Sessions
 
         public async Task RemovePlayerFromSession(Guid sessionId, Guid playerId)
         {
-            var session = await _commonContext.Sessions.AsQueryable().FirstAsync(x => x.SessionId == sessionId);
+            var session = await _commonContext.Sessions.AsQueryable().FirstAsync(x => x.Id == sessionId);
             session.PlayersLink.Remove(session.PlayersLink.First(x => x.PlayerId == playerId));
             await _commonContext.SaveChangesAsync();
         }
